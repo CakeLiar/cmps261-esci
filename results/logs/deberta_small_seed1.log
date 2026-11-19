@@ -1,0 +1,44 @@
+device cuda model microsoft/deberta-v3-small fields ['title', 'brandcolor', 'bullets'] frac 1.0 cw none
+train pairs 377484
+encoded torch.Size([377484, 128]) 89 s
+/home/lolix/esci/.venv/lib/python3.10/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/102 [00:00<?, ?it/s]Loading weights: 100%|██████████| 102/102 [00:00<00:00, 3779.72it/s]
+[transformers] [1mDebertaV2ForSequenceClassification LOAD REPORT[0m from: microsoft/deberta-v3-small
+Key                                     | Status     | 
+----------------------------------------+------------+-
+mask_predictions.LayerNorm.weight       | UNEXPECTED | 
+mask_predictions.classifier.bias        | UNEXPECTED | 
+lm_predictions.lm_head.dense.weight     | UNEXPECTED | 
+lm_predictions.lm_head.LayerNorm.weight | UNEXPECTED | 
+lm_predictions.lm_head.dense.bias       | UNEXPECTED | 
+mask_predictions.LayerNorm.bias         | UNEXPECTED | 
+mask_predictions.classifier.weight      | UNEXPECTED | 
+mask_predictions.dense.bias             | UNEXPECTED | 
+lm_predictions.lm_head.bias             | UNEXPECTED | 
+mask_predictions.dense.weight           | UNEXPECTED | 
+lm_predictions.lm_head.LayerNorm.bias   | UNEXPECTED | 
+classifier.weight                       | MISSING    | 
+pooler.dense.bias                       | MISSING    | 
+classifier.bias                         | MISSING    | 
+pooler.dense.weight                     | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+params 141897988
+ep 0 step 200/15730 loss 1.3224 74s
+ep 0 step 400/15730 loss 1.1789 147s
+ep 0 step 600/15730 loss 1.1321 222s
+ep 0 step 800/15730 loss 1.0456 281s
+ep 0 step 1000/15730 loss 0.9997 317s
+ep 0 step 1200/15730 loss 0.9835 385s
+ep 0 step 1400/15730 loss 0.9542 458s
+ep 0 step 1600/15730 loss 0.9453 534s
+ep 0 step 1800/15730 loss 0.9324 607s
+ep 0 step 2000/15730 loss 0.9375 681s
+VAL 2000 0.5882 0.5262 {'E': 0.6468, 'S': 0.5825, 'C': 0.3986, 'I': 0.477}
+ep 0 step 2200/15730 loss 0.9278 834s
+ep 0 step 2400/15730 loss 0.9090 909s
+ep 0 step 2600/15730 loss 0.9200 949s

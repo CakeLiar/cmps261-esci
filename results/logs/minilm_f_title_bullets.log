@@ -1,0 +1,79 @@
+device cuda model cross-encoder/ms-marco-MiniLM-L-6-v2 fields ['title', 'bullets'] frac 1.0 cw none
+train pairs 377484
+encoded torch.Size([377484, 128]) 82 s
+[transformers] You passed `num_labels=4` which is incompatible to the `id2label` map of length `1`.
+Loading weights:   0%|          | 0/105 [00:00<?, ?it/s]Loading weights: 100%|██████████| 105/105 [00:00<00:00, 5076.50it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: cross-encoder/ms-marco-MiniLM-L-6-v2
+Key               | Status   |                                                                                       
+------------------+----------+---------------------------------------------------------------------------------------
+classifier.weight | MISMATCH | Reinit due to size mismatch - ckpt: torch.Size([1, 384]) vs model:torch.Size([4, 384])
+classifier.bias   | MISMATCH | Reinit due to size mismatch - ckpt: torch.Size([1]) vs model:torch.Size([4])          
+
+Notes:
+- MISMATCH:	ckpt weights were loaded, but they did not match the original empty weight shapes.
+params 22714756
+ep 0 step 200/11798 loss 1.3099 8s
+ep 0 step 400/11798 loss 1.1069 16s
+ep 0 step 600/11798 loss 1.0769 24s
+ep 0 step 800/11798 loss 1.0300 32s
+ep 0 step 1000/11798 loss 1.0157 40s
+ep 0 step 1200/11798 loss 1.0017 48s
+ep 0 step 1400/11798 loss 0.9902 56s
+ep 0 step 1600/11798 loss 0.9786 64s
+ep 0 step 1800/11798 loss 0.9712 72s
+ep 0 step 2000/11798 loss 0.9623 80s
+VAL 2000 0.5692 0.4976 {'E': 0.6448, 'S': 0.5371, 'C': 0.3535, 'I': 0.455}
+ep 0 step 2200/11798 loss 0.9527 96s
+ep 0 step 2400/11798 loss 0.9438 104s
+ep 0 step 2600/11798 loss 0.9483 112s
+ep 0 step 2800/11798 loss 0.9409 120s
+ep 0 step 3000/11798 loss 0.9368 128s
+ep 0 step 3200/11798 loss 0.9405 136s
+ep 0 step 3400/11798 loss 0.9378 144s
+ep 0 step 3600/11798 loss 0.9196 152s
+ep 0 step 3800/11798 loss 0.9232 160s
+ep 0 step 4000/11798 loss 0.9274 168s
+VAL 4000 0.5791 0.509 {'E': 0.663, 'S': 0.5243, 'C': 0.3864, 'I': 0.4622}
+ep 0 step 4200/11798 loss 0.9086 184s
+ep 0 step 4400/11798 loss 0.9156 192s
+ep 0 step 4600/11798 loss 0.9090 200s
+ep 0 step 4800/11798 loss 0.9092 208s
+ep 0 step 5000/11798 loss 0.9113 216s
+ep 0 step 5200/11798 loss 0.8929 224s
+ep 0 step 5400/11798 loss 0.9022 232s
+ep 0 step 5600/11798 loss 0.8928 240s
+ep 0 step 5800/11798 loss 0.8824 249s
+ep 1 step 6000/11798 loss 0.4305 4s
+VAL 6000 0.5769 0.5219 {'E': 0.6408, 'S': 0.56, 'C': 0.4095, 'I': 0.4773}
+ep 1 step 6200/11798 loss 0.8637 20s
+ep 1 step 6400/11798 loss 0.8579 28s
+ep 1 step 6600/11798 loss 0.8547 36s
+ep 1 step 6800/11798 loss 0.8455 44s
+ep 1 step 7000/11798 loss 0.8515 52s
+ep 1 step 7200/11798 loss 0.8530 60s
+ep 1 step 7400/11798 loss 0.8417 68s
+ep 1 step 7600/11798 loss 0.8543 76s
+ep 1 step 7800/11798 loss 0.8530 84s
+ep 1 step 8000/11798 loss 0.8516 92s
+VAL 8000 0.577 0.5226 {'E': 0.645, 'S': 0.5532, 'C': 0.4042, 'I': 0.4879}
+ep 1 step 8200/11798 loss 0.8505 108s
+ep 1 step 8400/11798 loss 0.8276 116s
+ep 1 step 8600/11798 loss 0.8422 124s
+ep 1 step 8800/11798 loss 0.8291 132s
+ep 1 step 9000/11798 loss 0.8453 140s
+ep 1 step 9200/11798 loss 0.8353 148s
+ep 1 step 9400/11798 loss 0.8353 156s
+ep 1 step 9600/11798 loss 0.8313 164s
+ep 1 step 9800/11798 loss 0.8261 172s
+ep 1 step 10000/11798 loss 0.8312 180s
+VAL 10000 0.5749 0.5282 {'E': 0.6295, 'S': 0.5667, 'C': 0.4179, 'I': 0.4988}
+ep 1 step 10200/11798 loss 0.8352 197s
+ep 1 step 10400/11798 loss 0.8338 205s
+ep 1 step 10600/11798 loss 0.8397 213s
+ep 1 step 10800/11798 loss 0.8401 221s
+ep 1 step 11000/11798 loss 0.8310 229s
+ep 1 step 11200/11798 loss 0.8282 237s
+ep 1 step 11400/11798 loss 0.8398 245s
+ep 1 step 11600/11798 loss 0.8415 253s
+VAL 11798 0.5765 0.5262 {'E': 0.6371, 'S': 0.5622, 'C': 0.4149, 'I': 0.4907}
+done 521 s

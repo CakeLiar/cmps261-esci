@@ -1,0 +1,377 @@
+{
+ "test_pairs": 181701,
+ "test_queries": 8956,
+ "models": {
+  "majority": {
+   "micro_f1": 0.4387,
+   "macro_f1": 0.1525,
+   "per_class_f1": {
+    "E": 0.6098,
+    "S": 0.0,
+    "C": 0.0,
+    "I": 0.0
+   },
+   "confusion": [
+    [
+     79708,
+     0,
+     0,
+     0
+    ],
+    [
+     63563,
+     0,
+     0,
+     0
+    ],
+    [
+     8099,
+     0,
+     0,
+     0
+    ],
+    [
+     30331,
+     0,
+     0,
+     0
+    ]
+   ]
+  },
+  "lightgbm": {
+   "micro_f1": 0.5272,
+   "macro_f1": 0.3926,
+   "per_class_f1": {
+    "E": 0.6154,
+    "S": 0.5046,
+    "C": 0.097,
+    "I": 0.3533
+   },
+   "confusion": [
+    [
+     53749,
+     20972,
+     262,
+     4725
+    ],
+    [
+     25528,
+     32852,
+     93,
+     5090
+    ],
+    [
+     4646,
+     2382,
+     435,
+     636
+    ],
+    [
+     11058,
+     10447,
+     76,
+     8750
+    ]
+   ]
+  },
+  "logistic_regression": {
+   "micro_f1": 0.5226,
+   "macro_f1": 0.3843,
+   "per_class_f1": {
+    "E": 0.6145,
+    "S": 0.4951,
+    "C": 0.0926,
+    "I": 0.3351
+   },
+   "confusion": [
+    [
+     54710,
+     20249,
+     239,
+     4510
+    ],
+    [
+     27288,
+     31833,
+     106,
+     4336
+    ],
+    [
+     5026,
+     2060,
+     415,
+     598
+    ],
+    [
+     11336,
+     10881,
+     107,
+     8007
+    ]
+   ]
+  },
+  "minilm": {
+   "micro_f1": 0.5807,
+   "macro_f1": 0.5077,
+   "per_class_f1": {
+    "E": 0.6636,
+    "S": 0.5347,
+    "C": 0.3753,
+    "I": 0.4573
+   },
+   "confusion": [
+    [
+     59203,
+     14319,
+     1437,
+     4749
+    ],
+    [
+     26211,
+     31530,
+     615,
+     5207
+    ],
+    [
+     3415,
+     1020,
+     2498,
+     1166
+    ],
+    [
+     9883,
+     7499,
+     662,
+     12287
+    ]
+   ]
+  },
+  "deberta_small": {
+   "micro_f1": 0.602,
+   "macro_f1": 0.5531,
+   "per_class_f1": {
+    "E": 0.6627,
+    "S": 0.5905,
+    "C": 0.4615,
+    "I": 0.4976
+   },
+   "confusion": [
+    [
+     52393,
+     20268,
+     2097,
+     4950
+    ],
+    [
+     17948,
+     39465,
+     1005,
+     5145
+    ],
+    [
+     1970,
+     1279,
+     3780,
+     1070
+    ],
+    [
+     6089,
+     9098,
+     1401,
+     13743
+    ]
+   ]
+  },
+  "deberta_base": {
+   "micro_f1": 0.6083,
+   "macro_f1": 0.5555,
+   "per_class_f1": {
+    "E": 0.6768,
+    "S": 0.5796,
+    "C": 0.4456,
+    "I": 0.5201
+   },
+   "confusion": [
+    [
+     55093,
+     17279,
+     1450,
+     5886
+    ],
+    [
+     19976,
+     36849,
+     619,
+     6119
+    ],
+    [
+     2180,
+     1125,
+     3107,
+     1687
+    ],
+    [
+     5841,
+     8346,
+     671,
+     15473
+    ]
+   ]
+  },
+  "hybrid_lex+ce_all": {
+   "micro_f1": 0.6094,
+   "macro_f1": 0.5517,
+   "per_class_f1": {
+    "E": 0.6771,
+    "S": 0.5808,
+    "C": 0.4304,
+    "I": 0.5187
+   },
+   "confusion": [
+    [
+     56234,
+     16969,
+     1168,
+     5337
+    ],
+    [
+     20731,
+     36600,
+     511,
+     5721
+    ],
+    [
+     2648,
+     1067,
+     2867,
+     1517
+    ],
+    [
+     6789,
+     7840,
+     679,
+     15023
+    ]
+   ]
+  }
+ },
+ "val": {
+  "lightgbm_refit": {
+   "micro_f1": 0.5244,
+   "macro_f1": 0.3956,
+   "per_class_f1": {
+    "E": 0.6115,
+    "S": 0.5024,
+    "C": 0.1153,
+    "I": 0.3531
+   },
+   "confusion": [
+    [
+     12266,
+     5128,
+     44,
+     1059
+    ],
+    [
+     5815,
+     7704,
+     29,
+     1169
+    ],
+    [
+     1054,
+     564,
+     120,
+     135
+    ],
+    [
+     2489,
+     2553,
+     15,
+     2025
+    ]
+   ],
+   "best_iter": 99,
+   "fit_secs": 9,
+   "test_infer_secs": 0.5
+  }
+ },
+ "hybrid_selected": "lex+ce_all",
+ "val_micro_used_for_selection": {
+  "lightgbm": 0.5244,
+  "hybrid_lex+ce_all": 0.6073,
+  "logistic_regression": 0.5197,
+  "minilm": 0.582,
+  "deberta_small": 0.5986,
+  "deberta_base": 0.6116
+ },
+ "final_model": "deberta_base",
+ "slices": {
+  "all": {
+   "n_pairs": 181701,
+   "share": 1.0,
+   "majority": 0.4387,
+   "lightgbm": 0.5272,
+   "logistic_regression": 0.5226,
+   "minilm": 0.5807,
+   "deberta_small": 0.602,
+   "deberta_base": 0.6083,
+   "hybrid_lex+ce_all": 0.6094
+  },
+  "high_overlap_labelled_I_or_C": {
+   "n_pairs": 4494,
+   "share": 0.0247,
+   "majority": 0.0,
+   "lightgbm": 0.0777,
+   "logistic_regression": 0.0579,
+   "minilm": 0.2991,
+   "deberta_small": 0.4406,
+   "deberta_base": 0.4355,
+   "hybrid_lex+ce_all": 0.3883
+  },
+  "low_overlap_labelled_E": {
+   "n_pairs": 21426,
+   "share": 0.1179,
+   "majority": 1.0,
+   "lightgbm": 0.4749,
+   "logistic_regression": 0.4979,
+   "minilm": 0.622,
+   "deberta_small": 0.5371,
+   "deberta_base": 0.5591,
+   "hybrid_lex+ce_all": 0.5781
+  },
+  "likely_misspelled_query": {
+   "n_pairs": 16618,
+   "share": 0.0915,
+   "majority": 0.4058,
+   "lightgbm": 0.5114,
+   "logistic_regression": 0.4986,
+   "minilm": 0.5412,
+   "deberta_small": 0.5613,
+   "deberta_base": 0.5647,
+   "hybrid_lex+ce_all": 0.5697
+  },
+  "query_has_number": {
+   "n_pairs": 37584,
+   "share": 0.2068,
+   "majority": 0.3662,
+   "lightgbm": 0.5352,
+   "logistic_regression": 0.517,
+   "minilm": 0.5998,
+   "deberta_small": 0.6306,
+   "deberta_base": 0.6347,
+   "hybrid_lex+ce_all": 0.6348
+  },
+  "query_has_negation": {
+   "n_pairs": 22970,
+   "share": 0.1264,
+   "majority": 0.3916,
+   "lightgbm": 0.5091,
+   "logistic_regression": 0.5028,
+   "minilm": 0.5862,
+   "deberta_small": 0.6125,
+   "deberta_base": 0.6164,
+   "hybrid_lex+ce_all": 0.6192
+  }
+ }
+}

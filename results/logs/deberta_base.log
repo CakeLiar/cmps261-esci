@@ -1,0 +1,119 @@
+device cuda model microsoft/deberta-v3-base fields ['title', 'brandcolor', 'bullets'] frac 1.0 cw none
+train pairs 377484
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+encoded torch.Size([377484, 128]) 114 s
+/home/lolix/esci/.venv/lib/python3.10/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+Loading weights:   0%|          | 0/198 [00:00<?, ?it/s]Loading weights: 100%|██████████| 198/198 [00:00<00:00, 3300.74it/s]
+[transformers] [1mDebertaV2ForSequenceClassification LOAD REPORT[0m from: microsoft/deberta-v3-base
+Key                                     | Status     | 
+----------------------------------------+------------+-
+mask_predictions.classifier.bias        | UNEXPECTED | 
+mask_predictions.classifier.weight      | UNEXPECTED | 
+mask_predictions.LayerNorm.weight       | UNEXPECTED | 
+lm_predictions.lm_head.LayerNorm.weight | UNEXPECTED | 
+mask_predictions.dense.bias             | UNEXPECTED | 
+mask_predictions.LayerNorm.bias         | UNEXPECTED | 
+mask_predictions.dense.weight           | UNEXPECTED | 
+lm_predictions.lm_head.dense.weight     | UNEXPECTED | 
+lm_predictions.lm_head.bias             | UNEXPECTED | 
+lm_predictions.lm_head.LayerNorm.bias   | UNEXPECTED | 
+lm_predictions.lm_head.dense.bias       | UNEXPECTED | 
+pooler.dense.bias                       | MISSING    | 
+pooler.dense.weight                     | MISSING    | 
+classifier.bias                         | MISSING    | 
+classifier.weight                       | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+params 184425220
+ep 0 step 200/15730 loss 1.2681 66s
+ep 0 step 400/15730 loss 1.1574 132s
+ep 0 step 600/15730 loss 1.1118 198s
+ep 0 step 800/15730 loss 1.0359 264s
+ep 0 step 1000/15730 loss 0.9882 330s
+ep 0 step 1200/15730 loss 0.9655 396s
+ep 0 step 1400/15730 loss 0.9533 462s
+ep 0 step 1600/15730 loss 0.9283 529s
+ep 0 step 1800/15730 loss 0.9330 595s
+ep 0 step 2000/15730 loss 0.9251 661s
+VAL 2000 0.5991 0.5435 {'E': 0.6679, 'S': 0.5631, 'C': 0.4167, 'I': 0.5263}
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.07it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.07it/s]
+ep 0 step 2200/15730 loss 0.9158 806s
+ep 0 step 2400/15730 loss 0.9026 870s
+ep 0 step 2600/15730 loss 0.9050 935s
+ep 0 step 2800/15730 loss 0.9030 999s
+ep 0 step 3000/15730 loss 0.8988 1062s
+ep 0 step 3200/15730 loss 0.8745 1125s
+ep 0 step 3400/15730 loss 0.8783 1188s
+ep 0 step 3600/15730 loss 0.8692 1251s
+ep 0 step 3800/15730 loss 0.8605 1314s
+ep 0 step 4000/15730 loss 0.8565 1377s
+VAL 4000 0.5902 0.551 {'E': 0.6362, 'S': 0.5903, 'C': 0.4566, 'I': 0.5211}
+ep 0 step 4200/15730 loss 0.8653 1520s
+ep 0 step 4400/15730 loss 0.8626 1582s
+ep 0 step 4600/15730 loss 0.8513 1645s
+ep 0 step 4800/15730 loss 0.8407 1708s
+ep 0 step 5000/15730 loss 0.8486 1771s
+ep 0 step 5200/15730 loss 0.8400 1834s
+ep 0 step 5400/15730 loss 0.8373 1897s
+ep 0 step 5600/15730 loss 0.8396 1960s
+ep 0 step 5800/15730 loss 0.8430 2023s
+ep 0 step 6000/15730 loss 0.8431 2086s
+VAL 6000 0.6116 0.5618 {'E': 0.6773, 'S': 0.5799, 'C': 0.4528, 'I': 0.5374}
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.86s/it]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.86s/it]
+ep 0 step 6200/15730 loss 0.8248 2231s
+ep 0 step 6400/15730 loss 0.8302 2294s
+ep 0 step 6600/15730 loss 0.8228 2357s
+ep 0 step 6800/15730 loss 0.8317 2419s
+ep 0 step 7000/15730 loss 0.8134 2482s
+ep 0 step 7200/15730 loss 0.8186 2544s
+ep 0 step 7400/15730 loss 0.8229 2607s
+ep 0 step 7600/15730 loss 0.8245 2670s
+ep 0 step 7800/15730 loss 0.8174 2732s
+ep 1 step 8000/15730 loss 0.5054 42s
+VAL 8000 0.6097 0.5683 {'E': 0.6591, 'S': 0.6002, 'C': 0.4736, 'I': 0.5403}
+ep 1 step 8200/15730 loss 0.7562 184s
+ep 1 step 8400/15730 loss 0.7578 246s
+ep 1 step 8600/15730 loss 0.7615 309s
+ep 1 step 8800/15730 loss 0.7549 372s
+ep 1 step 9000/15730 loss 0.7394 434s
+ep 1 step 9200/15730 loss 0.7452 497s
+ep 1 step 9400/15730 loss 0.7504 560s
+ep 1 step 9600/15730 loss 0.7373 622s
+ep 1 step 9800/15730 loss 0.7563 685s
+ep 1 step 10000/15730 loss 0.7506 747s
+VAL 10000 0.608 0.562 {'E': 0.6633, 'S': 0.597, 'C': 0.46, 'I': 0.5277}
+ep 1 step 10200/15730 loss 0.7328 889s
+ep 1 step 10400/15730 loss 0.7357 952s
+ep 1 step 10600/15730 loss 0.7418 1014s
+ep 1 step 10800/15730 loss 0.7402 1077s
+ep 1 step 11000/15730 loss 0.7433 1140s
+ep 1 step 11200/15730 loss 0.7393 1202s
+ep 1 step 11400/15730 loss 0.7452 1265s
+ep 1 step 11600/15730 loss 0.7309 1328s
+ep 1 step 11800/15730 loss 0.7365 1390s
+ep 1 step 12000/15730 loss 0.7291 1453s
+VAL 12000 0.6082 0.558 {'E': 0.6755, 'S': 0.5796, 'C': 0.4581, 'I': 0.5187}
+ep 1 step 12200/15730 loss 0.7325 1595s
+ep 1 step 12400/15730 loss 0.7403 1657s
+ep 1 step 12600/15730 loss 0.7221 1720s
+ep 1 step 12800/15730 loss 0.7303 1782s
+ep 1 step 13000/15730 loss 0.7284 1845s
+ep 1 step 13200/15730 loss 0.7293 1908s
+ep 1 step 13400/15730 loss 0.7288 1970s
+ep 1 step 13600/15730 loss 0.7156 2033s
+ep 1 step 13800/15730 loss 0.7067 2096s
+ep 1 step 14000/15730 loss 0.7234 2158s
+VAL 14000 0.6056 0.5627 {'E': 0.6557, 'S': 0.5988, 'C': 0.4662, 'I': 0.5303}
+ep 1 step 14200/15730 loss 0.7140 2300s
+ep 1 step 14400/15730 loss 0.7311 2363s
+ep 1 step 14600/15730 loss 0.7198 2425s
+ep 1 step 14800/15730 loss 0.7248 2488s
+ep 1 step 15000/15730 loss 0.7170 2551s
+ep 1 step 15200/15730 loss 0.7026 2613s
+ep 1 step 15400/15730 loss 0.7204 2676s
+ep 1 step 15600/15730 loss 0.7158 2739s
+VAL 15730 0.6094 0.566 {'E': 0.6642, 'S': 0.5937, 'C': 0.4689, 'I': 0.5374}
+done 5611 s

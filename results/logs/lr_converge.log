@@ -1,0 +1,8 @@
+lr {'C': 0.1, 'class_weight': None} 534 0.5197 0.3832 770
+lr {'C': 0.1, 'class_weight': 'balanced'} 581 0.4804 0.4305 785
+lr {'C': 0.3, 'class_weight': 'balanced'} 826 0.4886 0.4333 1126
+lr {'C': 0.3, 'class_weight': None} 877 0.5158 0.3894 1132
+lr {'C': 1.0, 'class_weight': 'balanced'} 1351 0.4905 0.4276 1613
+lr {'C': 1.0, 'class_weight': None} 1370 0.5076 0.3906 1644
+lr {'C': 3.0, 'class_weight': 'balanced'} 1936 0.4864 0.4148 2191
+lr {'C': 3.0, 'class_weight': None} 2103 0.4961 0.3869 2353

@@ -1,0 +1,109 @@
+{
+ "config": {
+  "model": "microsoft/deberta-v3-small",
+  "MAXLEN": 128,
+  "EPOCHS": 2,
+  "BS": 48,
+  "LR": 2e-05,
+  "SEED": 1,
+  "warmup": 0.05,
+  "weight_decay": 0.01,
+  "FIELDS": [
+   "title",
+   "brandcolor",
+   "bullets"
+  ],
+  "FRAC": 1.0,
+  "CW": null,
+  "train_pairs": 377484,
+  "params": 141897988,
+  "device": "cuda",
+  "transformers": "5.20.2",
+  "torch": "2.14.1+cu130",
+  "gpu": "NVIDIA L4"
+ },
+ "log": [
+  {
+   "micro_f1": 0.5882,
+   "macro_f1": 0.5262,
+   "per_class_f1": {
+    "E": 0.6468,
+    "S": 0.5825,
+    "C": 0.3986,
+    "I": 0.477
+   },
+   "confusion": [
+    [
+     11851,
+     5291,
+     315,
+     1040
+    ],
+    [
+     4121,
+     9379,
+     111,
+     1106
+    ],
+    [
+     618,
+     421,
+     614,
+     220
+    ],
+    [
+     1558,
+     2397,
+     168,
+     2959
+    ]
+   ],
+   "step": 2000,
+   "epoch": 0,
+   "secs": 761,
+   "val_infer_secs": 79.9,
+   "peak_gpu_mem_gb": 5.23
+  }
+ ],
+ "best": {
+  "micro_f1": 0.5882,
+  "macro_f1": 0.5262,
+  "per_class_f1": {
+   "E": 0.6468,
+   "S": 0.5825,
+   "C": 0.3986,
+   "I": 0.477
+  },
+  "confusion": [
+   [
+    11851,
+    5291,
+    315,
+    1040
+   ],
+   [
+    4121,
+    9379,
+    111,
+    1106
+   ],
+   [
+    618,
+    421,
+    614,
+    220
+   ],
+   [
+    1558,
+    2397,
+    168,
+    2959
+   ]
+  ],
+  "step": 2000,
+  "epoch": 0,
+  "secs": 761,
+  "val_infer_secs": 79.9,
+  "peak_gpu_mem_gb": 5.23
+ }
+}

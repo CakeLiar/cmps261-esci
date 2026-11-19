@@ -4,7 +4,13 @@ pyarrow
 scipy
 scikit-learn
 lightgbm
-torch
+joblib
+torch==2.14.1
 tokenizers
-transformers
+transformers==5.20.2
+sentencepiece
+protobuf
 matplotlib
+nbformat
+nbconvert
+ipykernel

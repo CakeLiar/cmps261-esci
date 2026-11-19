@@ -1,0 +1,81 @@
+device cuda model cross-encoder/ms-marco-MiniLM-L-6-v2
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+encoded torch.Size([377484, 128]) 83 s
+[transformers] You passed `num_labels=4` which is incompatible to the `id2label` map of length `1`.
+Loading weights:   0%|          | 0/105 [00:00<?, ?it/s]Loading weights: 100%|██████████| 105/105 [00:00<00:00, 5542.16it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: cross-encoder/ms-marco-MiniLM-L-6-v2
+Key               | Status   |                                                                                       
+------------------+----------+---------------------------------------------------------------------------------------
+classifier.bias   | MISMATCH | Reinit due to size mismatch - ckpt: torch.Size([1]) vs model:torch.Size([4])          
+classifier.weight | MISMATCH | Reinit due to size mismatch - ckpt: torch.Size([1, 384]) vs model:torch.Size([4, 384])
+
+Notes:
+- MISMATCH:	ckpt weights were loaded, but they did not match the original empty weight shapes.
+params 22714756
+ep 0 step 200/11798 loss 1.3074 8s
+ep 0 step 400/11798 loss 1.1056 16s
+ep 0 step 600/11798 loss 1.0788 24s
+ep 0 step 800/11798 loss 1.0298 32s
+ep 0 step 1000/11798 loss 1.0147 40s
+ep 0 step 1200/11798 loss 0.9987 48s
+ep 0 step 1400/11798 loss 0.9889 56s
+ep 0 step 1600/11798 loss 0.9762 64s
+ep 0 step 1800/11798 loss 0.9683 72s
+ep 0 step 2000/11798 loss 0.9633 80s
+VAL 2000 0.5713 0.4982 {'E': 0.6498, 'S': 0.5353, 'C': 0.3493, 'I': 0.4582}
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00, 11.50it/s]
+ep 0 step 2200/11798 loss 0.9488 96s
+ep 0 step 2400/11798 loss 0.9398 104s
+ep 0 step 2600/11798 loss 0.9475 112s
+ep 0 step 2800/11798 loss 0.9398 120s
+ep 0 step 3000/11798 loss 0.9363 128s
+ep 0 step 3200/11798 loss 0.9370 139s
+ep 0 step 3400/11798 loss 0.9367 151s
+ep 0 step 3600/11798 loss 0.9171 166s
+ep 0 step 3800/11798 loss 0.9217 178s
+ep 0 step 4000/11798 loss 0.9263 190s
+VAL 4000 0.582 0.5101 {'E': 0.6659, 'S': 0.5316, 'C': 0.3809, 'I': 0.4622}
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.39it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.38it/s]
+ep 0 step 4200/11798 loss 0.9066 210s
+ep 0 step 4400/11798 loss 0.9154 221s
+ep 0 step 4600/11798 loss 0.9067 234s
+ep 0 step 4800/11798 loss 0.9064 246s
+ep 0 step 5000/11798 loss 0.9091 258s
+ep 0 step 5200/11798 loss 0.8911 270s
+ep 0 step 5400/11798 loss 0.9004 282s
+ep 0 step 5600/11798 loss 0.8903 298s
+ep 0 step 5800/11798 loss 0.8797 308s
+ep 1 step 6000/11798 loss 0.4283 5s
+VAL 6000 0.578 0.5237 {'E': 0.6409, 'S': 0.5633, 'C': 0.409, 'I': 0.4816}
+ep 1 step 6200/11798 loss 0.8604 25s
+ep 1 step 6400/11798 loss 0.8564 37s
+ep 1 step 6600/11798 loss 0.8509 50s
+ep 1 step 6800/11798 loss 0.8438 61s
+ep 1 step 7000/11798 loss 0.8498 76s
+ep 1 step 7200/11798 loss 0.8500 87s
+ep 1 step 7400/11798 loss 0.8395 99s
+ep 1 step 7600/11798 loss 0.8517 110s
+ep 1 step 7800/11798 loss 0.8519 123s
+ep 1 step 8000/11798 loss 0.8485 134s
+VAL 8000 0.5791 0.5241 {'E': 0.6472, 'S': 0.5558, 'C': 0.404, 'I': 0.4895}
+ep 1 step 8200/11798 loss 0.8482 155s
+ep 1 step 8400/11798 loss 0.8245 166s
+ep 1 step 8600/11798 loss 0.8377 177s
+ep 1 step 8800/11798 loss 0.8265 189s
+ep 1 step 9000/11798 loss 0.8415 202s
+ep 1 step 9200/11798 loss 0.8308 216s
+ep 1 step 9400/11798 loss 0.8328 230s
+ep 1 step 9600/11798 loss 0.8306 242s
+ep 1 step 9800/11798 loss 0.8239 254s
+ep 1 step 10000/11798 loss 0.8280 268s
+VAL 10000 0.5762 0.5277 {'E': 0.6313, 'S': 0.569, 'C': 0.4123, 'I': 0.4981}
+ep 1 step 10200/11798 loss 0.8330 288s
+ep 1 step 10400/11798 loss 0.8296 301s
+ep 1 step 10600/11798 loss 0.8369 312s
+ep 1 step 10800/11798 loss 0.8370 323s
+ep 1 step 11000/11798 loss 0.8297 334s
+ep 1 step 11200/11798 loss 0.8272 345s
+ep 1 step 11400/11798 loss 0.8370 356s
+ep 1 step 11600/11798 loss 0.8374 368s
+VAL 11798 0.5781 0.5265 {'E': 0.6399, 'S': 0.5642, 'C': 0.4128, 'I': 0.4889}
+done 701 s

@@ -1,0 +1,119 @@
+device cuda model microsoft/deberta-v3-small
+encoded torch.Size([377484, 128]) 124 s
+/home/lolix/esci-project/.venv/lib/python3.10/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/102 [00:00<?, ?it/s]Loading weights: 100%|██████████| 102/102 [00:00<00:00, 2197.31it/s]
+[transformers] [1mDebertaV2ForSequenceClassification LOAD REPORT[0m from: microsoft/deberta-v3-small
+Key                                     | Status     | 
+----------------------------------------+------------+-
+mask_predictions.classifier.weight      | UNEXPECTED | 
+mask_predictions.LayerNorm.bias         | UNEXPECTED | 
+lm_predictions.lm_head.bias             | UNEXPECTED | 
+mask_predictions.LayerNorm.weight       | UNEXPECTED | 
+mask_predictions.classifier.bias        | UNEXPECTED | 
+mask_predictions.dense.bias             | UNEXPECTED | 
+lm_predictions.lm_head.dense.weight     | UNEXPECTED | 
+lm_predictions.lm_head.LayerNorm.bias   | UNEXPECTED | 
+mask_predictions.dense.weight           | UNEXPECTED | 
+lm_predictions.lm_head.LayerNorm.weight | UNEXPECTED | 
+lm_predictions.lm_head.dense.bias       | UNEXPECTED | 
+classifier.bias                         | MISSING    | 
+pooler.dense.weight                     | MISSING    | 
+classifier.weight                       | MISSING    | 
+pooler.dense.bias                       | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+params 141897988
+ep 0 step 200/15730 loss 1.2442 41s
+ep 0 step 400/15730 loss 1.1560 81s
+ep 0 step 600/15730 loss 1.1207 122s
+ep 0 step 800/15730 loss 1.0476 162s
+ep 0 step 1000/15730 loss 0.9977 202s
+ep 0 step 1200/15730 loss 0.9692 242s
+ep 0 step 1400/15730 loss 0.9594 282s
+ep 0 step 1600/15730 loss 0.9345 323s
+ep 0 step 1800/15730 loss 0.9408 363s
+ep 0 step 2000/15730 loss 0.9361 403s
+VAL 2000 0.5921 0.5358 {'E': 0.6627, 'S': 0.5592, 'C': 0.4231, 'I': 0.4982}
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.26it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.26it/s]
+ep 0 step 2200/15730 loss 0.9314 484s
+ep 0 step 2400/15730 loss 0.9144 525s
+ep 0 step 2600/15730 loss 0.9154 565s
+ep 0 step 2800/15730 loss 0.9113 606s
+ep 0 step 3000/15730 loss 0.9140 645s
+ep 0 step 3200/15730 loss 0.8967 686s
+ep 0 step 3400/15730 loss 0.8982 726s
+ep 0 step 3600/15730 loss 0.8777 765s
+ep 0 step 3800/15730 loss 0.8848 804s
+ep 0 step 4000/15730 loss 0.8748 843s
+VAL 4000 0.5921 0.5458 {'E': 0.6508, 'S': 0.5837, 'C': 0.4525, 'I': 0.4961}
+ep 0 step 4200/15730 loss 0.8827 922s
+ep 0 step 4400/15730 loss 0.8785 960s
+ep 0 step 4600/15730 loss 0.8686 999s
+ep 0 step 4800/15730 loss 0.8622 1039s
+ep 0 step 5000/15730 loss 0.8609 1077s
+ep 0 step 5200/15730 loss 0.8567 1116s
+ep 0 step 5400/15730 loss 0.8539 1155s
+ep 0 step 5600/15730 loss 0.8543 1191s
+ep 0 step 5800/15730 loss 0.8607 1227s
+ep 0 step 6000/15730 loss 0.8599 1262s
+VAL 6000 0.5982 0.543 {'E': 0.671, 'S': 0.564, 'C': 0.4385, 'I': 0.4983}
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.42s/it]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.42s/it]
+ep 0 step 6200/15730 loss 0.8399 1341s
+ep 0 step 6400/15730 loss 0.8460 1377s
+ep 0 step 6600/15730 loss 0.8407 1413s
+ep 0 step 6800/15730 loss 0.8508 1449s
+ep 0 step 7000/15730 loss 0.8350 1484s
+ep 0 step 7200/15730 loss 0.8364 1520s
+ep 0 step 7400/15730 loss 0.8335 1556s
+ep 0 step 7600/15730 loss 0.8421 1592s
+ep 0 step 7800/15730 loss 0.8331 1627s
+ep 1 step 8000/15730 loss 0.5223 24s
+VAL 8000 0.5979 0.5484 {'E': 0.6556, 'S': 0.5888, 'C': 0.4412, 'I': 0.5079}
+ep 1 step 8200/15730 loss 0.7766 99s
+ep 1 step 8400/15730 loss 0.7745 135s
+ep 1 step 8600/15730 loss 0.7794 171s
+ep 1 step 8800/15730 loss 0.7813 207s
+ep 1 step 9000/15730 loss 0.7619 242s
+ep 1 step 9200/15730 loss 0.7625 278s
+ep 1 step 9400/15730 loss 0.7728 314s
+ep 1 step 9600/15730 loss 0.7570 349s
+ep 1 step 9800/15730 loss 0.7794 385s
+ep 1 step 10000/15730 loss 0.7765 421s
+VAL 10000 0.5977 0.5471 {'E': 0.6562, 'S': 0.5881, 'C': 0.443, 'I': 0.5014}
+ep 1 step 10200/15730 loss 0.7525 496s
+ep 1 step 10400/15730 loss 0.7604 532s
+ep 1 step 10600/15730 loss 0.7620 568s
+ep 1 step 10800/15730 loss 0.7662 603s
+ep 1 step 11000/15730 loss 0.7651 639s
+ep 1 step 11200/15730 loss 0.7590 675s
+ep 1 step 11400/15730 loss 0.7749 711s
+ep 1 step 11600/15730 loss 0.7580 746s
+ep 1 step 11800/15730 loss 0.7465 782s
+ep 1 step 12000/15730 loss 0.7494 818s
+VAL 12000 0.5979 0.5413 {'E': 0.6685, 'S': 0.5735, 'C': 0.4424, 'I': 0.4807}
+ep 1 step 12200/15730 loss 0.7503 893s
+ep 1 step 12400/15730 loss 0.7546 929s
+ep 1 step 12600/15730 loss 0.7373 965s
+ep 1 step 12800/15730 loss 0.7581 1001s
+ep 1 step 13000/15730 loss 0.7539 1036s
+ep 1 step 13200/15730 loss 0.7505 1072s
+ep 1 step 13400/15730 loss 0.7524 1108s
+ep 1 step 13600/15730 loss 0.7369 1143s
+ep 1 step 13800/15730 loss 0.7404 1179s
+ep 1 step 14000/15730 loss 0.7409 1215s
+VAL 14000 0.5966 0.5497 {'E': 0.6509, 'S': 0.5905, 'C': 0.4529, 'I': 0.5045}
+ep 1 step 14200/15730 loss 0.7473 1290s
+ep 1 step 14400/15730 loss 0.7614 1326s
+ep 1 step 14600/15730 loss 0.7416 1362s
+ep 1 step 14800/15730 loss 0.7443 1397s
+ep 1 step 15000/15730 loss 0.7349 1433s
+ep 1 step 15200/15730 loss 0.7317 1469s
+ep 1 step 15400/15730 loss 0.7486 1505s
+ep 1 step 15600/15730 loss 0.7509 1540s
+VAL 15730 0.5986 0.5485 {'E': 0.6607, 'S': 0.5841, 'C': 0.4496, 'I': 0.4998}
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.57s/it]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.57s/it]
+done 3246 s

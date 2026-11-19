@@ -1,0 +1,20 @@
+{
+ "minilm": {
+  "val_argmax_agreement_with_saved": 1.0,
+  "test_pairs": 181701,
+  "test_infer_secs": 69.3,
+  "test_pairs_per_sec": 2622
+ },
+ "deberta_small": {
+  "val_argmax_agreement_with_saved": 1.0,
+  "test_pairs": 181701,
+  "test_infer_secs": 207.9,
+  "test_pairs_per_sec": 874
+ },
+ "deberta_base": {
+  "val_argmax_agreement_with_saved": 1.0,
+  "test_pairs": 181701,
+  "test_infer_secs": 375.2,
+  "test_pairs_per_sec": 484
+ }
+}

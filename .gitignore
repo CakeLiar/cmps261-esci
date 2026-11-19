@@ -4,8 +4,9 @@ __pycache__/
 raw/
 data/
 models/
-results/
-figures/
 report.html
-*.pdf
 HANDOVER.md
+report/*.aux
+report/*.log
+report/*.out
+results/*_crash1.log

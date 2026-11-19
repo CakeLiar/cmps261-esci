@@ -1,0 +1,366 @@
+{
+ "thresholds": {
+  "high_overlap_ov_title_ge": 0.75,
+  "low_overlap_ov_title_le": 0.25,
+  "misspelled": "alphabetic query token, 4+ letters, absent from train titles and bullets"
+ },
+ "best_baseline_source": "lgb",
+ "slices": {
+  "all": {
+   "n_pairs": 42169,
+   "share": 1.0,
+   "n_queries": 2088,
+   "label_counts": {
+    "E": 18497,
+    "S": 14717,
+    "C": 1873,
+    "I": 7082
+   },
+   "best_baseline": {
+    "accuracy": 0.5244,
+    "pred_counts": {
+     "E": 21624,
+     "S": 15949,
+     "C": 208,
+     "I": 4388
+    },
+    "micro_f1": 0.5244,
+    "macro_f1": 0.3956,
+    "per_class_f1": {
+     "E": 0.6115,
+     "S": 0.5024,
+     "C": 0.1153,
+     "I": 0.3531
+    }
+   },
+   "minilm": {
+    "accuracy": 0.582,
+    "pred_counts": {
+     "E": 22995,
+     "S": 12734,
+     "C": 1225,
+     "I": 5215
+    },
+    "micro_f1": 0.582,
+    "macro_f1": 0.5101,
+    "per_class_f1": {
+     "E": 0.6659,
+     "S": 0.5316,
+     "C": 0.3809,
+     "I": 0.4622
+    }
+   },
+   "deberta_small": {
+    "accuracy": 0.5986,
+    "pred_counts": {
+     "E": 18312,
+     "S": 16194,
+     "C": 1997,
+     "I": 5666
+    },
+    "micro_f1": 0.5986,
+    "macro_f1": 0.5485,
+    "per_class_f1": {
+     "E": 0.6607,
+     "S": 0.5841,
+     "C": 0.4496,
+     "I": 0.4998
+    }
+   }
+  },
+  "high_overlap_labelled_I_or_C": {
+   "n_pairs": 1076,
+   "share": 0.0255,
+   "n_queries": 403,
+   "label_counts": {
+    "E": 0,
+    "S": 0,
+    "C": 501,
+    "I": 575
+   },
+   "best_baseline": {
+    "accuracy": 0.0901,
+    "pred_counts": {
+     "E": 815,
+     "S": 156,
+     "C": 103,
+     "I": 2
+    }
+   },
+   "minilm": {
+    "accuracy": 0.276,
+    "pred_counts": {
+     "E": 615,
+     "S": 121,
+     "C": 282,
+     "I": 58
+    }
+   },
+   "deberta_small": {
+    "accuracy": 0.4089,
+    "pred_counts": {
+     "E": 396,
+     "S": 167,
+     "C": 364,
+     "I": 149
+    }
+   }
+  },
+  "low_overlap_labelled_E": {
+   "n_pairs": 4587,
+   "share": 0.1088,
+   "n_queries": 1143,
+   "label_counts": {
+    "E": 4587,
+    "S": 0,
+    "C": 0,
+    "I": 0
+   },
+   "best_baseline": {
+    "accuracy": 0.4886,
+    "pred_counts": {
+     "E": 2241,
+     "S": 1453,
+     "C": 1,
+     "I": 892
+    }
+   },
+   "minilm": {
+    "accuracy": 0.6444,
+    "pred_counts": {
+     "E": 2956,
+     "S": 967,
+     "C": 55,
+     "I": 609
+    }
+   },
+   "deberta_small": {
+    "accuracy": 0.528,
+    "pred_counts": {
+     "E": 2422,
+     "S": 1438,
+     "C": 121,
+     "I": 606
+    }
+   }
+  },
+  "likely_misspelled_query": {
+   "n_pairs": 3986,
+   "share": 0.0945,
+   "n_queries": 211,
+   "label_counts": {
+    "E": 1652,
+    "S": 1444,
+    "C": 130,
+    "I": 760
+   },
+   "best_baseline": {
+    "accuracy": 0.5015,
+    "pred_counts": {
+     "E": 1871,
+     "S": 1428,
+     "C": 8,
+     "I": 679
+    },
+    "micro_f1": 0.5015,
+    "macro_f1": 0.371,
+    "per_class_f1": {
+     "E": 0.5995,
+     "S": 0.4805,
+     "C": 0.058,
+     "I": 0.3461
+    }
+   },
+   "minilm": {
+    "accuracy": 0.5246,
+    "pred_counts": {
+     "E": 2004,
+     "S": 1423,
+     "C": 85,
+     "I": 474
+    },
+    "micro_f1": 0.5246,
+    "macro_f1": 0.4591,
+    "per_class_f1": {
+     "E": 0.6187,
+     "S": 0.4995,
+     "C": 0.3907,
+     "I": 0.3274
+    }
+   },
+   "deberta_small": {
+    "accuracy": 0.5374,
+    "pred_counts": {
+     "E": 1505,
+     "S": 1636,
+     "C": 135,
+     "I": 710
+    },
+    "micro_f1": 0.5374,
+    "macro_f1": 0.5074,
+    "per_class_f1": {
+     "E": 0.5879,
+     "S": 0.5305,
+     "C": 0.4528,
+     "I": 0.4585
+    }
+   }
+  },
+  "query_has_number": {
+   "n_pairs": 9037,
+   "share": 0.2143,
+   "n_queries": 441,
+   "label_counts": {
+    "E": 3396,
+    "S": 3723,
+    "C": 413,
+    "I": 1505
+   },
+   "best_baseline": {
+    "accuracy": 0.5472,
+    "pred_counts": {
+     "E": 3162,
+     "S": 4977,
+     "C": 112,
+     "I": 786
+    },
+    "micro_f1": 0.5472,
+    "macro_f1": 0.4509,
+    "per_class_f1": {
+     "E": 0.555,
+     "S": 0.6055,
+     "C": 0.2781,
+     "I": 0.3649
+    }
+   },
+   "minilm": {
+    "accuracy": 0.6108,
+    "pred_counts": {
+     "E": 3616,
+     "S": 4028,
+     "C": 282,
+     "I": 1111
+    },
+    "micro_f1": 0.6108,
+    "macro_f1": 0.556,
+    "per_class_f1": {
+     "E": 0.6438,
+     "S": 0.6337,
+     "C": 0.4489,
+     "I": 0.4977
+    }
+   },
+   "deberta_small": {
+    "accuracy": 0.6357,
+    "pred_counts": {
+     "E": 3060,
+     "S": 4254,
+     "C": 413,
+     "I": 1310
+    },
+    "micro_f1": 0.6357,
+    "macro_f1": 0.5909,
+    "per_class_f1": {
+     "E": 0.6561,
+     "S": 0.6692,
+     "C": 0.5061,
+     "I": 0.5321
+    }
+   }
+  },
+  "query_has_negation": {
+   "n_pairs": 5201,
+   "share": 0.1233,
+   "n_queries": 174,
+   "label_counts": {
+    "E": 1978,
+    "S": 1576,
+    "C": 123,
+    "I": 1524
+   },
+   "best_baseline": {
+    "accuracy": 0.5011,
+    "pred_counts": {
+     "E": 2349,
+     "S": 1503,
+     "C": 0,
+     "I": 1349
+    },
+    "micro_f1": 0.5011,
+    "macro_f1": 0.3744,
+    "per_class_f1": {
+     "E": 0.5676,
+     "S": 0.4099,
+     "C": 0.0,
+     "I": 0.52
+    }
+   },
+   "minilm": {
+    "accuracy": 0.5772,
+    "pred_counts": {
+     "E": 2068,
+     "S": 1471,
+     "C": 17,
+     "I": 1645
+    },
+    "micro_f1": 0.5772,
+    "macro_f1": 0.4586,
+    "per_class_f1": {
+     "E": 0.6312,
+     "S": 0.489,
+     "C": 0.1,
+     "I": 0.6141
+    }
+   },
+   "deberta_small": {
+    "accuracy": 0.6055,
+    "pred_counts": {
+     "E": 1694,
+     "S": 1793,
+     "C": 125,
+     "I": 1589
+    },
+    "micro_f1": 0.6055,
+    "macro_f1": 0.5369,
+    "per_class_f1": {
+     "E": 0.6645,
+     "S": 0.5568,
+     "C": 0.3145,
+     "I": 0.6116
+    }
+   }
+  }
+ },
+ "complement": {
+  "best_baseline": {
+   "n": 1873,
+   "pred_counts": {
+    "E": 1054,
+    "S": 564,
+    "C": 120,
+    "I": 135
+   },
+   "recall": 0.0641
+  },
+  "minilm": {
+   "n": 1873,
+   "pred_counts": {
+    "E": 780,
+    "S": 268,
+    "C": 590,
+    "I": 235
+   },
+   "recall": 0.315
+  },
+  "deberta_small": {
+   "n": 1873,
+   "pred_counts": {
+    "E": 463,
+    "S": 302,
+    "C": 870,
+    "I": 238
+   },
+   "recall": 0.4645
+  }
+ }
+}

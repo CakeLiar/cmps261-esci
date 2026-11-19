@@ -1,0 +1,31 @@
+device cuda model cross-encoder/ms-marco-MiniLM-L-6-v2 fields ['title', 'brandcolor', 'bullets'] frac 0.25 cw none
+train pairs 93813
+encoded torch.Size([93813, 128]) 27 s
+[transformers] You passed `num_labels=4` which is incompatible to the `id2label` map of length `1`.
+Loading weights:   0%|          | 0/105 [00:00<?, ?it/s]Loading weights: 100%|██████████| 105/105 [00:00<00:00, 5338.92it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: cross-encoder/ms-marco-MiniLM-L-6-v2
+Key               | Status   |                                                                                       
+------------------+----------+---------------------------------------------------------------------------------------
+classifier.weight | MISMATCH | Reinit due to size mismatch - ckpt: torch.Size([1, 384]) vs model:torch.Size([4, 384])
+classifier.bias   | MISMATCH | Reinit due to size mismatch - ckpt: torch.Size([1]) vs model:torch.Size([4])          
+
+Notes:
+- MISMATCH:	ckpt weights were loaded, but they did not match the original empty weight shapes.
+params 22714756
+ep 0 step 200/2932 loss 1.2199 9s
+ep 0 step 400/2932 loss 1.0651 17s
+ep 0 step 600/2932 loss 1.0172 35s
+ep 0 step 800/2932 loss 0.9904 54s
+ep 0 step 1000/2932 loss 0.9570 72s
+ep 0 step 1200/2932 loss 0.9624 90s
+ep 0 step 1400/2932 loss 0.9415 109s
+ep 1 step 1600/2932 loss 0.6038 12s
+ep 1 step 1800/2932 loss 0.8847 31s
+ep 1 step 2000/2932 loss 0.8655 49s
+VAL 2000 0.5595 0.4891 {'E': 0.6357, 'S': 0.5366, 'C': 0.3377, 'I': 0.4465}
+ep 1 step 2200/2932 loss 0.8819 83s
+ep 1 step 2400/2932 loss 0.8870 102s
+ep 1 step 2600/2932 loss 0.8661 120s
+ep 1 step 2800/2932 loss 0.8614 139s
+VAL 2932 0.5579 0.4951 {'E': 0.6278, 'S': 0.5422, 'C': 0.3565, 'I': 0.4536}
+done 281 s

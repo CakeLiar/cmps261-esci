@@ -1,0 +1,15 @@
+ce_all_only 0.6065 0.5499 {'E': 0.6732, 'S': 0.5738, 'C': 0.4247, 'I': 0.5278}
+lex+ce_best 0.6026 0.5442 {'E': 0.6707, 'S': 0.5735, 'C': 0.4194, 'I': 0.5131}
+lex+ce_all 0.6073 0.5489 {'E': 0.6749, 'S': 0.5765, 'C': 0.4202, 'I': 0.5239}
+lex+ce_all_balanced 0.5835 0.5412 {'E': 0.6423, 'S': 0.5739, 'C': 0.4198, 'I': 0.5289}
+/home/lolix/esci/.venv/lib/python3.10/site-packages/lightgbm/sklearn.py:1106: LGBMDeprecationWarning: The argument 'eval_set' is deprecated, use 'eval_X' and 'eval_y' instead.
+  eval_set = _validate_eval_set_Xy(eval_set=eval_set, eval_X=eval_X, eval_y=eval_y)
+selected lex+ce_all
+final model (chosen on validation): deberta_base
+majority 0.4387 0.1525 {'E': 0.6098, 'S': 0.0, 'C': 0.0, 'I': 0.0}
+lightgbm 0.5272 0.3926 {'E': 0.6154, 'S': 0.5046, 'C': 0.097, 'I': 0.3533}
+logistic_regression 0.5226 0.3843 {'E': 0.6145, 'S': 0.4951, 'C': 0.0926, 'I': 0.3351}
+minilm 0.5807 0.5077 {'E': 0.6636, 'S': 0.5347, 'C': 0.3753, 'I': 0.4573}
+deberta_small 0.602 0.5531 {'E': 0.6627, 'S': 0.5905, 'C': 0.4615, 'I': 0.4976}
+deberta_base 0.6083 0.5555 {'E': 0.6768, 'S': 0.5796, 'C': 0.4456, 'I': 0.5201}
+hybrid_lex+ce_all 0.6094 0.5517 {'E': 0.6771, 'S': 0.5808, 'C': 0.4304, 'I': 0.5187}

@@ -1,0 +1,10 @@
+figures written; final model deberta_base
+wrote CMPS261_ESCI.ipynb with 46 cells
+[NbConvertApp] Converting notebook CMPS261_ESCI.ipynb to notebook
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+[NbConvertApp] Writing 373020 bytes to CMPS261_ESCI.ipynb
+  File "/home/lolix/esci/build_final_report.py", line 114
+    rows.append(f"{name} & {c['params'] / 1e6:.0f}M & {c['MAXLEN']} & {c['BS']} & {train_min(t):.0f} & {(f"{l['peak_gpu_mem_gb']:.1f}" if l.get('peak_gpu_mem_gb') else '--')} & {thr}" + r' \\')
+                                                                                                                                  ^
+SyntaxError: invalid decimal literal
+OUT_EXIT=1

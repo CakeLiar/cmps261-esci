@@ -1,0 +1,45 @@
+{
+ "pairs_raw": 601354,
+ "pairs_missing_product": 0,
+ "dup_pairs": 0,
+ "train": {
+  "pairs": 377484,
+  "queries": 18800,
+  "label_dist": {
+   "E": 0.4327,
+   "S": 0.3521,
+   "I": 0.1696,
+   "C": 0.0456
+  }
+ },
+ "val": {
+  "pairs": 42169,
+  "queries": 2088,
+  "label_dist": {
+   "E": 0.4386,
+   "S": 0.349,
+   "I": 0.1679,
+   "C": 0.0444
+  }
+ },
+ "test": {
+  "pairs": 181701,
+  "queries": 8956,
+  "label_dist": {
+   "E": 0.4387,
+   "S": 0.3498,
+   "I": 0.1669,
+   "C": 0.0446
+  }
+ },
+ "missing_rate_products": {
+  "product_title": 0.0,
+  "product_description": 0.4778,
+  "product_bullet_point": 0.132,
+  "product_brand": 0.0564,
+  "product_color": 0.3218
+ },
+ "n_products": 482105,
+ "query_len_words_mean": 3.9839611942383355,
+ "title_len_words_mean": 17.078938528720187
+}

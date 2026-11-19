@@ -1,0 +1,9 @@
+Loading weights:   0%|          | 0/105 [00:00<?, ?it/s]Loading weights: 100%|██████████| 105/105 [00:00<00:00, 5705.43it/s]
+minilm {'val_argmax_agreement_with_saved': 1.0, 'test_pairs': 181701, 'test_infer_secs': 69.3, 'test_pairs_per_sec': 2622}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+/home/lolix/esci/.venv/lib/python3.10/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+Loading weights:   0%|          | 0/106 [00:00<?, ?it/s]Loading weights: 100%|██████████| 106/106 [00:00<00:00, 5427.60it/s]
+deberta_small {'val_argmax_agreement_with_saved': 1.0, 'test_pairs': 181701, 'test_infer_secs': 207.9, 'test_pairs_per_sec': 874}
+Loading weights:   0%|          | 0/202 [00:00<?, ?it/s]Loading weights: 100%|██████████| 202/202 [00:00<00:00, 5500.66it/s]
+deberta_base {'val_argmax_agreement_with_saved': 1.0, 'test_pairs': 181701, 'test_infer_secs': 375.2, 'test_pairs_per_sec': 484}
