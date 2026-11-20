@@ -7,7 +7,7 @@ Data: US locale, reduced set (`small_version == 1`). Metric: micro-F1 (main), ma
 
 | What | Where |
 |---|---|
-| Final report (PDF and LaTeX source) | `report/final_report.pdf`, `report/final_report.tex` |
+| Final report | `report/final_report.pdf` |
 | Progress report | `report/CMPS261_progress_report.pdf` |
 | Notebook with all code and results | `CMPS261_ESCI.ipynb` |
 | Trained models | GitHub Release `v1.0` of this repository (see *Models* below) |
@@ -28,7 +28,7 @@ Data: US locale, reduced set (`small_version == 1`). Metric: micro-F1 (main), ma
 | 7. Test predictions, final models only | `predict_test.py` | `results/<tag>_test_proba.npy` |
 | 8. One-time test evaluation | `final_test.py` | `results/test.json`, `models/lgb_best.txt`, `models/hybrid_lgb.txt` |
 | 8b. Bootstrap intervals (CPU, seconds) | `significance.py` | `results/significance.json` |
-| 9. Figures, report, notebook | `make_figures.py`, `make_figures_final.py`, `build_report.py`, `build_final_report.py`, `make_notebook.py` | `figures/`, `report/`, `CMPS261_ESCI.ipynb` |
+| 9. Figures, notebook | `make_figures.py`, `make_figures_final.py`, `make_notebook.py` | `figures/`, `CMPS261_ESCI.ipynb` |
 
 `xenc.py` is an earlier cross-encoder trained from scratch. It is not used in the reports.
 
@@ -55,7 +55,7 @@ Copy its `results/` into the first VM's `results/` (all file names differ betwee
 
 ```bash
 QUEUES="" FINAL=1 bash run_experiments.sh   # test predictions, failure slices, hybrid CV and the one-time test evaluation
-python significance.py && python make_figures_final.py && python build_final_report.py && python make_notebook.py
+python significance.py && python make_figures_final.py && python make_notebook.py
 ```
 
 To skip the first round, download `minilm.tar.gz` and `deberta_small.tar.gz` from release `v1.0` and unpack them into `models/`; the final step needs those checkpoints and `results/baseline.json`, `minilm.json` and `deberta_small.json`, which are in this repository.
