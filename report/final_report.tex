@@ -17,34 +17,34 @@
 \maketitle
 
 \begin{abstract}
-We classify shopping query--product pairs from the Amazon Shopping Queries dataset (ESCI) into Exact, Substitute, Complement and Irrelevant.
-On the US reduced set (601{,}354 pairs) we compare a majority-class baseline, logistic regression on TF-IDF, LightGBM on 33 hand-built lexical features, three fine-tuned pretrained cross-encoders (MiniLM-L6, DeBERTa-v3-small and DeBERTa-v3-base) and a LightGBM stacker that combines cross-encoder probabilities with the lexical features.
-All model choices were made on a validation split grouped by query, and the held-out test split was evaluated once.
-The selected model, DeBERTa-v3-base, reaches test micro-F1 0.608 and macro-F1 0.556, against 0.527 and 0.393 for LightGBM.
-The Complement class stays hardest (test F1 0.446), and 52.3\% of the remaining errors are confusions between Exact and Substitute.
-We also report ablations on product fields, sequence length, class weighting, training-set size and random seed, and the compute cost of each model.
+In this project we take a shopping query and a product from the Amazon Shopping Queries dataset (ESCI) and try to predict if the product is Exact, Substitute, Complement or Irrelevant for that query.
+We worked on the US reduced set (601{,}354 pairs) and tried a majority-class baseline, logistic regression on TF-IDF, LightGBM on 33 lexical features we made ourselves, three pretrained cross-encoders that we fine-tuned (MiniLM-L6, DeBERTa-v3-small and DeBERTa-v3-base), and a LightGBM stacker that mixes the cross-encoder probabilities with the lexical features.
+We picked every model and setting on a validation split grouped by query, and we only ran on the test split one time at the end.
+Our final model, DeBERTa-v3-base, reaches test micro-F1 0.608 and macro-F1 0.556, against 0.527 and 0.393 for LightGBM.
+Complement is still the hardest class (test F1 0.446), and 52.3\% of the errors that are left are Exact and Substitute getting mixed up.
+We also did ablations on the product fields, sequence length, class weights, training set size and random seed, and we measured how much compute each model needs.
 \end{abstract}
 
 \section{Introduction}
-When a customer searches an online store, the store has to decide how well each product matches the query.
-The ESCI dataset \cite{reddy2022} labels this with four classes: \emph{Exact} (the product is what was asked for), \emph{Substitute} (it is close and could replace it), \emph{Complement} (it goes with the requested product) and \emph{Irrelevant}.
-The task is hard because the classes depend on small details: for a query ``phone case for iPhone 12'', an iPhone 12 would be a Complement and a case for an iPhone 11 a Substitute or Irrelevant.
-Word overlap alone does not separate these cases.
+When someone searches on an online store, the store needs to know how well each product matches what they typed.
+The ESCI dataset \cite{reddy2022} gives four labels for this: \emph{Exact} (the product is what the person asked for), \emph{Substitute} (it is close and could be used instead), \emph{Complement} (it is used together with what they asked for) and \emph{Irrelevant}.
+What makes it hard is that the label often depends on a small detail. For example, for the query ``phone case for iPhone 12'', an iPhone 12 itself is a Complement, while a case for an iPhone 11 is a Substitute or Irrelevant.
+Just counting shared words cannot tell these apart.
 
-Our questions were: (1) how far a well-tuned lexical model gets, (2) how much pretrained cross-encoders add, and which design choices matter for them, and (3) whether combining both helps.
-Our progress report covered the baselines and two cross-encoders. This report adds a larger cross-encoder, a set of controlled ablations, the hybrid stacker, a resource analysis and the one-time test evaluation.
-All code, the notebook and run logs are in our repository, \url{https://github.com/CakeLiar/cmps261-esci}, and the trained models are attached to its release v1.0, \url{https://github.com/CakeLiar/cmps261-esci/releases/tag/v1.0}.
+We wanted to answer three questions: (1) how far can a well tuned lexical model go, (2) how much do pretrained cross-encoders add, and which choices matter for them, and (3) does combining the two help.
+In the progress report we had the baselines and two cross-encoders. For this final report we added a bigger cross-encoder, ablations where we change one thing at a time, the hybrid stacker, a look at compute cost, and the test evaluation.
+Everything (code, notebook, logs) is on our GitHub, \url{https://github.com/CakeLiar/cmps261-esci}, and the trained models can be downloaded from release v1.0, \url{https://github.com/CakeLiar/cmps261-esci/releases/tag/v1.0}.
 
 \section{Dataset}
-We use the US locale of the reduced version (\texttt{small\_version == 1}) of the ESCI data \cite{reddy2022}, joined with the product catalogue (482{,}105 products).
-No pairs had a missing product and there were no duplicate pairs.
-Product titles are always present, but descriptions are missing for 47.8\% of products, bullet points for 13.2\%, brand for 5.6\% and colour for 32.2\%.
-Queries are short (mean 4.0 words) and titles are long (mean 17.1 words).
+We use the US part of the reduced version (\texttt{small\_version == 1}) of ESCI \cite{reddy2022} and join it with the product catalogue (482{,}105 products).
+Every pair had its product in the catalogue and we found no duplicate pairs.
+All products have a title, but the description is missing for 47.8\% of products, bullet points for 13.2\%, brand for 5.6\% and colour for 32.2\%.
+Queries are short (on average 4.0 words) while titles are much longer (on average 17.1 words).
 
-\textbf{Cleaning.} We unescape HTML, strip tags, normalise whitespace and lowercase all text. Missing fields become empty strings.
+\textbf{Cleaning.} We unescape HTML, remove tags, fix extra whitespace and lowercase everything. Missing fields are replaced with empty strings.
 
-\textbf{Splits.} We keep the official test split untouched. From the official training split we hold out 10\% of \emph{queries} (not pairs) as validation, with seed 42, so that no query appears in both training and validation.
-Table~\ref{tab:data} shows the sizes and label shares. The classes are imbalanced: Complement is under 5\% of pairs.
+\textbf{Splits.} We did not touch the official test split until the end. From the official train split we took 10\% of the \emph{queries} (not the pairs) as validation, with seed 42, so the same query never shows up in both train and validation.
+Table~\ref{tab:data} has the sizes and the label shares. The data is imbalanced, Complement is less than 5\% of the pairs.
 
 \begin{table}[H]\centering\small
 \begin{tabular}{lrrrrrr}\toprule
@@ -56,34 +56,34 @@ Test & 8{,}956 & 181{,}701 & 43.9\% & 35.0\% & 4.5\% & 16.7\% \\
 \caption{Split sizes and label distribution.}\label{tab:data}
 \end{table}
 
-\textbf{Metric.} Following the KDD Cup 2022 task 2 \cite{reddy2022} we use micro-F1 (equal to accuracy for single-label classification) as the main metric, and also report macro-F1 and per-class F1, because micro-F1 hides poor performance on Complement.
-The reduced set keeps the harder queries of the full dataset \cite{reddy2022}, and we train on it alone, so our scores are not directly comparable to KDD Cup 2022 leaderboard numbers, which were trained on larger data and evaluated on a hidden test set.
+\textbf{Metric.} Like KDD Cup 2022 task 2 \cite{reddy2022}, our main metric is micro-F1 (which is the same as accuracy when each pair has one label). We also report macro-F1 and F1 per class, since micro-F1 alone hides how badly a model does on Complement.
+The reduced set has the harder queries of the full dataset \cite{reddy2022} and we only train on it, so our numbers can not be compared directly with the KDD Cup leaderboard, where teams trained on more data and were scored on a hidden test set.
 
 \section{Models}
 \textbf{Majority class.} Always predicts Exact.
 
-\textbf{Lexical features + LightGBM.} We compute 33 features per pair (\texttt{feats.py}): token overlap between the query and the title, bullets, description, brand and colour (plain and IDF-weighted, fitted on training titles); Jaccard and character 3-gram overlap with the title; BM25-style scores \cite{robertson2009} against title, bullets and description; query, title, bullet and description lengths and whether each field is present; the count of numbers in the query and the share of them found in the title or bullets; whether the brand appears in the query; the number and highest IDF of query words found in no product field; whether the query has a negation; counts of complement cue words (such as ``case'', ``charger'', ``for'') in query and title; whether a query word appears after ``for'' in the title; whether the first and last query words are in the title; and the mean IDF of the query.
-We train LightGBM \cite{ke2017} with learning rate 0.05 and early stopping (50 rounds) on validation, and tune \texttt{num\_leaves} $\in\{31,127\}$, \texttt{min\_child\_samples} $\in\{50,200\}$ and class weights (none or balanced): 8 settings.
-The best used 127 leaves, minimum 200 samples per leaf, no class weights, and stopped at 99 trees. 3 of the 8 settings, all with balanced class weights, reached the 2,000-tree cap without early stopping; they score well below the unweighted ones (best 0.496).
+\textbf{Lexical features + LightGBM.} For each pair we compute 33 features (\texttt{feats.py}): token overlap between the query and the title, bullets, description, brand and colour (plain and IDF-weighted, fitted on training titles); Jaccard and character 3-gram overlap with the title; BM25-style scores \cite{robertson2009} against title, bullets and description; query, title, bullet and description lengths and whether each field is present; the count of numbers in the query and the share of them found in the title or bullets; whether the brand appears in the query; the number and highest IDF of query words found in no product field; whether the query has a negation; counts of complement cue words (such as ``case'', ``charger'', ``for'') in query and title; whether a query word appears after ``for'' in the title; whether the first and last query words are in the title; and the mean IDF of the query.
+We train LightGBM \cite{ke2017} with learning rate 0.05 and early stopping on validation (50 rounds), and we tune \texttt{num\_leaves} $\in\{31,127\}$, \texttt{min\_child\_samples} $\in\{50,200\}$ and class weights (none or balanced), so 8 settings in total.
+The best one used 127 leaves, minimum 200 samples per leaf, no class weights, and stopped at 99 trees. 3 of the 8 settings, all with balanced class weights, hit the limit of 2,000 trees before early stopping kicked in; they are all much worse than the unweighted ones anyway (best 0.496).
 
-\textbf{Logistic regression.} Multinomial logistic regression \cite{pedregosa2011} on word and character TF-IDF of the query and title (1{,}045{,}120 sparse columns, fit on training text only) plus the standardised lexical features, with $C\in\{0.1,0.3,1,3\}$ and optional balanced class weights.
-In the progress report these fits stopped at 300 lbfgs iterations without converging. With the iteration limit raised to 3{,}000, 8 of 8 settings converged; the best (C=0.1, class weight none) reached validation micro-F1 0.520, against 0.519 at 300 iterations.
+\textbf{Logistic regression.} We use multinomial logistic regression \cite{pedregosa2011} on word and character TF-IDF of the query and the title (1{,}045{,}120 sparse columns, fit on training text only) plus the standardised lexical features, with $C\in\{0.1,0.3,1,3\}$ and optional balanced class weights.
+In the progress report these fits stopped at 300 lbfgs iterations before converging, so we ran them again. With the limit raised to 3{,}000 iterations, 8 of 8 settings converged; the best (C=0.1, class weight none) reached validation micro-F1 0.520, against 0.519 at 300 iterations.
 
-\textbf{Cross-encoders.} A cross-encoder reads the query and the product text as one sequence and classifies the pair from the joint representation \cite{nogueira2019}.
-We fine-tune three pretrained encoders with a new 4-class head and cross-entropy loss: MiniLM-L6 \cite{wang2020}, already trained as a passage re-ranker on MS MARCO \cite{bajaj2016}; DeBERTa-v3-small and DeBERTa-v3-base \cite{he2023}.
-Input A is the cleaned query; input B is the title, brand and colour, and the first 300 characters of the bullet points, joined with the separator token and truncated to 128 tokens.
+\textbf{Cross-encoders.} A cross-encoder takes the query and the product text together as one input, so the model can look at both at the same time before deciding \cite{nogueira2019}.
+We fine-tune three pretrained models with a new 4-class head and cross-entropy loss: MiniLM-L6 \cite{wang2020}, which was already trained as a re-ranker on MS MARCO \cite{bajaj2016}, and DeBERTa-v3-small and DeBERTa-v3-base \cite{he2023}.
+The first input is the cleaned query. The second is the title, brand and colour, and the first 300 characters of the bullet points, joined with the separator token and cut at 128 tokens.
 We train for 2 epochs with AdamW \cite{loshchilov2019} (weight decay 0.01, 5\% linear warm-up, then linear decay), learning rate $3\times10^{-5}$ and batch 64 for MiniLM and $2\times10^{-5}$ and batch 48 for DeBERTa, with mixed precision \cite{wolf2020}.
-Gradients are clipped at norm 1.0. We evaluate on validation every 2,000 steps and keep the checkpoint with the best micro-F1; MiniLM-L6 at step 4{,}000 of 11{,}798, DeBERTa-v3-small at step 15{,}730 of 15{,}730, DeBERTa-v3-base at step 6{,}000 of 15{,}730.
+Gradients are clipped at norm 1.0. Every 2,000 steps we evaluate on validation and keep the checkpoint with the best micro-F1. The kept checkpoints are: MiniLM-L6 at step 4{,}000 of 11{,}798, DeBERTa-v3-small at step 15{,}730 of 15{,}730, DeBERTa-v3-base at step 6{,}000 of 15{,}730.
 
-\textbf{Hybrid stacker.} Cross-encoders read text but cannot see our hand-built signals directly (for example, whether a number in the query is in the title), and LightGBM cannot read text. We therefore stack them \cite{wolpert1992}: a second LightGBM takes the cross-encoders' class probabilities and the 33 lexical features.
-Because the cross-encoders were trained on the training split, their probabilities on training pairs are over-confident. We train the stacker on the \emph{validation} split instead and score it with 5-fold cross-validation grouped by query, so every validation prediction comes from a model that did not see that query.
-We compared four inputs (Table~\ref{tab:hybrid}) with fixed settings (300 trees, learning rate 0.05, 31 leaves, minimum 100 samples per leaf) and chose by out-of-fold micro-F1.
+\textbf{Hybrid stacker.} The cross-encoders read the text but do not directly see our hand made signals (for example if a number in the query also appears in the title), and LightGBM can not read the text at all. So we tried stacking them \cite{wolpert1992}: a second LightGBM gets the class probabilities of the cross-encoders plus the 33 lexical features.
+The cross-encoders were trained on the train split, so their probabilities on train pairs are too confident to train on. Instead we train the stacker on the \emph{validation} split and score it with 5-fold cross-validation grouped by query, which means each validation prediction comes from a model that never saw that query.
+We tried four different inputs (Table~\ref{tab:hybrid}) with the same fixed settings (300 trees, learning rate 0.05, 31 leaves, at least 100 samples per leaf) and picked by out-of-fold micro-F1.
 
-\textbf{Model selection.} The final model is the one with the highest validation micro-F1 (out-of-fold for the stacker). For the test run, the selected stacker is refit on all validation pairs.
+\textbf{Model selection.} Our final model is simply the one with the highest validation micro-F1 (out-of-fold for the stacker). For the test run the stacker is refit on all the validation pairs.
 
 \section{Results}
-All training ran on Google Cloud VMs with one NVIDIA L4 GPU (24\,GB) each; the second-round VMs were \texttt{g2-standard-32} (32 vCPUs, \texttt{infra/config.sh}).
-Times below are wall-clock and include CPU-side work such as tokenization.
+We trained everything on Google Cloud VMs with one NVIDIA L4 GPU (24\,GB) each; for the second round we used \texttt{g2-standard-32} (32 vCPUs, \texttt{infra/config.sh}).
+All times below are wall-clock, so they also include CPU work like tokenization.
 
 \subsection{Validation results and model selection}
 \begin{table}[H]\centering\small
@@ -100,8 +100,8 @@ Hybrid stacker, lexical + all cross-encoders (5-fold OOF) & 0.607 & 0.549 & 0.67
 \caption{Validation results (42{,}169 pairs). Cross-encoders: best checkpoint. Stacker: 5-fold out-of-fold predictions.}\label{tab:val}
 \end{table}
 
-Table~\ref{tab:val} shows the main comparison. LightGBM improves on the majority baseline mostly on Substitute and Irrelevant but almost never predicts Complement (F1 0.115).
-Every cross-encoder beats it, with the largest gains on Complement and Irrelevant. Larger encoders do better: MiniLM-L6 0.582, DeBERTa-v3-small 0.599, DeBERTa-v3-base 0.612 micro-F1.
+Table~\ref{tab:val} is the main comparison. LightGBM is better than the majority baseline mostly on Substitute and Irrelevant, but it almost never predicts Complement (F1 0.115).
+All the cross-encoders beat it, and the biggest gains are on Complement and Irrelevant. The bigger the encoder the better it does: MiniLM-L6 0.582, DeBERTa-v3-small 0.599, DeBERTa-v3-base 0.612 micro-F1.
 
 \subsection{Hybrid stacker}
 \begin{table}[H]\centering\small
@@ -118,12 +118,12 @@ Stacker: lexical + all cross-encoders, balanced & 0.584 & 0.541 & 0.642 & 0.574 
 \caption{Hybrid stacker variants, validation, 5-fold out-of-fold grouped by query. ``Alone'' rows are the cross-encoders' own argmax on the same pairs.}\label{tab:hybrid}
 \end{table}
 
-The best input by out-of-fold micro-F1 is lexical + all cross-encoders (Table~\ref{tab:hybrid}), essentially tied with cross-encoder probabilities only (0.607 against 0.607; bootstrap difference [$-$0.003, +0.005]). Compared with the best single cross-encoder, DeBERTa-v3-base, on the same pairs it changes micro-F1 by $-0.004$ and macro-F1 by $-0.013$.
-So stacking did not help: the stacker is trained on validation pairs only (about four fifths of 42{,}169 per fold), and the lexical features add little that the cross-encoders do not already capture. Adding the lexical features to the best cross-encoder alone (0.603) also scores below that cross-encoder by itself.
-Balanced class weights in the stacker lower micro-F1 to 0.584 and leave Complement F1 unchanged (0.420 against 0.420).
+The best input by out-of-fold micro-F1 is lexical + all cross-encoders (Table~\ref{tab:hybrid}), but it is basically a tie with cross-encoder probabilities only (0.607 against 0.607; bootstrap difference [$-$0.003, +0.005]). Compared to the best single cross-encoder, DeBERTa-v3-base, on the same pairs, it changes micro-F1 by $-0.004$ and macro-F1 by $-0.013$.
+So stacking did not help us. One reason is that the stacker only trains on validation pairs (around four fifths of 42{,}169 per fold), and the lexical features don't add much that the cross-encoders did not already learn. Adding the lexical features to only the best cross-encoder (0.603) is also worse than that cross-encoder by itself.
+Using balanced class weights in the stacker drops micro-F1 to 0.584 and leave Complement F1 unchanged (0.420 against 0.420).
 
 \subsection{Ablations (MiniLM-L6, validation)}
-To find which design choices matter we changed one setting at a time on MiniLM-L6, the cheapest cross-encoder (Table~\ref{tab:abl}).
+To see which choices actually matter, we changed one setting at a time on MiniLM-L6 since it is the cheapest cross-encoder (Table~\ref{tab:abl}).
 
 \begin{table}[H]\centering\small
 \begin{tabular}{lrrrrr}\toprule
@@ -137,14 +137,14 @@ Max length 256 & 0.578 & 0.527 & 0.410 & 0.493 & 18.4 \\
 Class-weighted loss (balanced) & 0.531 & 0.491 & 0.349 & 0.487 & 8.7 \\
 Seed 1 instead of 0 & 0.582 & 0.531 & 0.420 & 0.494 & 8.7 \\
 \bottomrule\end{tabular}
-\caption{One-change-at-a-time ablations on MiniLM-L6, validation, all at the last checkpoint (end of epoch 2), so rows compare settings rather than which checkpoint happened to be best. The reference run is from the first round, on a different L4 VM that shared its CPUs with the LightGBM grid, so its training time is not directly comparable.}\label{tab:abl}
+\caption{Ablations on MiniLM-L6 (one change at a time, validation). All rows use the last checkpoint (end of epoch 2) so that we compare the settings and not which checkpoint happened to be the best. The reference run is from the first round on a different L4 VM that was also running the LightGBM grid, so its training time can't be compared directly.}\label{tab:abl}
 \end{table}
 
-Class weighting lowers micro-F1 sharply. Among the field and length changes, only the title-only input (dropping bullets, brand and colour) clearly costs accuracy ($-0.010$ micro-F1 at the best checkpoint, bootstrap interval [$-$0.013, $-$0.006]); the others are within a few thousandths of the reference. Adding the product description is a weak test: it is appended last and is often cut off at 128 tokens.
+Class weighting makes micro-F1 a lot worse. From the field and length changes, only using the title alone (no bullets, brand or colour) clearly hurts ($-0.010$ micro-F1 at the best checkpoint, bootstrap interval [$-$0.013, $-$0.006]); the other changes are only a few thousandths away from the reference. The description row is not a very fair test, because we add the description at the end and at 128 tokens it usually gets cut off.
 
-\textbf{Seed variance.} MiniLM-L6: micro-F1 0.578 (seed 0) and 0.582 (seed 1), a difference of 0.004; macro-F1 0.526 and 0.531. For DeBERTa-v3-small only a partial seed-1 run survives: its log stops at training step 2{,}600 of 15{,}730 with no error, although the job status file records a normal exit. Its step times show that it shared the GPU with the other jobs of that queue for most of its life, and the VM was deleted before we noticed, so we cannot tell what happened to the full run. At the last validation pass it did complete (step 2{,}000), the two seeds give micro-F1 0.592 (seed 0) and 0.588 (seed 1), macro-F1 0.536 and 0.526. Micro-F1 differences between configurations smaller than the MiniLM-L6 seed gap should not be read as real.
+\textbf{Seed variance.} MiniLM-L6: micro-F1 0.578 (seed 0) and 0.582 (seed 1), a difference of 0.004; macro-F1 0.526 and 0.531. For DeBERTa-v3-small we only have part of the seed-1 run: the log stops at step 2{,}600 of 15{,}730 with no error, even though the status file says it exited normally. From the step times it was sharing the GPU with the other jobs in that queue most of the time, and we deleted the VM before we noticed, so we don't know what happened to the full run. At the last validation it finished (step 2{,}000), the two seeds give micro-F1 0.592 (seed 0) and 0.588 (seed 1), macro-F1 0.536 and 0.526. So if two settings differ by less than the MiniLM-L6 seed gap in micro-F1, we don't count it as a real difference.
 
-\textbf{Uncertainty.} To check which differences are larger than sampling noise we ran a paired bootstrap over queries (2{,}000 resamples of whole queries, seed 0; \texttt{significance.py}) and report 95\% intervals of the difference. On test, DeBERTa-v3-base beats DeBERTa-v3-small by $+0.006$ micro-F1 [+0.003, +0.009] but not clearly on macro-F1 ($+0.002$, [$-$0.001, +0.006]), and DeBERTa-v3-small beats MiniLM-L6 by $+0.021$ [+0.018, +0.025]. On validation, DeBERTa-v3-base minus the stacker is $+0.004$ [$-$0.001, +0.009], and MiniLM-L6 seed 1 minus seed 0 (best checkpoints) is $+0.004$ [$-$0.001, +0.008]; neither is distinguishable from zero. The final model's test micro-F1 interval is [0.604, 0.613], so differences of a few thousandths on test are at the edge of what the test set can resolve.
+\textbf{Uncertainty.} To check which differences are bigger than just noise, we did a paired bootstrap over queries (2{,}000 resamples of whole queries, seed 0; \texttt{significance.py}) and give the 95\% interval of the difference. On test, DeBERTa-v3-base is better than DeBERTa-v3-small by $+0.006$ micro-F1 [+0.003, +0.009] but not clearly on macro-F1 ($+0.002$, [$-$0.001, +0.006]), and DeBERTa-v3-small is better than MiniLM-L6 by $+0.021$ [+0.018, +0.025]. On validation, DeBERTa-v3-base minus the stacker is $+0.004$ [$-$0.001, +0.009], and MiniLM-L6 seed 1 minus seed 0 (best checkpoints) is $+0.004$ [$-$0.001, +0.008]; both of these could be zero. The final model's test micro-F1 interval is [0.604, 0.613], so on test a difference of a few thousandths is about the smallest thing we can tell apart.
 
 \subsection{Complexity and resource analysis}
 \begin{table}[H]\centering\small
@@ -156,11 +156,11 @@ DeBERTa-v3-base & 184M & 128 & 48 & 94 & 8.9 & 534 & 484 \\
 MiniLM-L6, length 64 & 23M & 64 & 64 & 6 & 0.8 & 12{,}778 & -- \\
 MiniLM-L6, length 256 & 23M & 256 & 64 & 18 & 2.1 & 2{,}481 & -- \\
 \bottomrule\end{tabular}
-\caption{Cost of the cross-encoders on one L4 GPU. Train minutes are wall-clock for 2 epochs including the periodic validation passes; first-round runs (MiniLM-L6, DeBERTa-v3-small) shared the VM's CPUs with other jobs. \emph{Val pairs/s}: GPU forward passes over the pre-tokenized validation split, batch 256, the same measurement for every row ($^\dagger$ timed on the identical seed-1 run; not logged for the first-round DeBERTa-v3-small). \emph{Test pairs/s}: the one-time test prediction, batch 512, including tokenization on the CPU, so it is lower and not comparable to the validation column. Peak memory was not logged in the first round (--).}\label{tab:res}
+\caption{Cost of the cross-encoders on one L4 GPU. Train minutes are wall-clock for 2 epochs, including the validation passes; the first-round runs (MiniLM-L6, DeBERTa-v3-small) were sharing the VM's CPUs with other jobs. \emph{Val pairs/s}: forward passes on the GPU over the already tokenized validation split, batch 256, measured the same way for every row ($^\dagger$ timed on the same model's seed-1 run; we did not log it for the first-round DeBERTa-v3-small). \emph{Test pairs/s}: the test prediction, batch 512, which also includes tokenizing on the CPU, so it is lower and should not be compared with the validation column. We did not log peak memory in the first round (--).}\label{tab:res}
 \end{table}
 
-Table~\ref{tab:res} shows the cost side. The cost of a cross-encoder grows with both model size and sequence length, while the classical models are far cheaper: the LightGBM refit took 9 seconds on CPU (99 trees) and predicted the 181{,}701 test pairs in 0.5 seconds, and the stacker adds only a small LightGBM on top of the cross-encoder outputs.
-Each logistic-regression fit on 1{,}045{,}120 sparse columns took 13--39 minutes of wall-clock time per setting (all 8 settings ran in parallel on one 32-vCPU VM while DeBERTa-v3-base trained on its GPU), about as long as fine-tuning MiniLM-L6, for much lower scores.
+Table~\ref{tab:res} shows the cost. A cross-encoder gets more expensive with both model size and sequence length, while the classical models are way cheaper: refitting LightGBM took 9 seconds on CPU (99 trees) and predicted the 181{,}701 test pairs in 0.5 seconds, and the stacker is only one small LightGBM on top of the cross-encoder outputs.
+On the other hand, each logistic regression fit on 1{,}045{,}120 sparse columns took 13--39 minutes per setting (all 8 ran in parallel on one 32-vCPU VM while DeBERTa-v3-base was training on its GPU), which is about as long as fine-tuning MiniLM-L6, and the scores are much lower.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.62\linewidth]{../figures/final_learning_curve.png}
@@ -178,7 +178,7 @@ Share of train queries & Pairs & micro-F1 & macro-F1 & F1 C \\\midrule
 \caption{Learning curve data (MiniLM-L6, last checkpoint, validation).}\label{tab:curve}
 \end{table}
 
-Figure~\ref{fig:curve} and Table~\ref{tab:curve} show how results change with training data size. Going from 10\% to 100\% of the training queries raises micro-F1 by $+0.037$ and Complement F1 from 0.108 to 0.413; the last doubling (50\% to 100\%) still adds $+0.008$ micro-F1, so more data would likely help further, most of all for Complement, the rarest class.
+Figure~\ref{fig:curve} and Table~\ref{tab:curve} show what happens when we use less training data. Going from 10\% to 100\% of the training queries improves micro-F1 by $+0.037$ and Complement F1 from 0.108 to 0.413; even the last step (50\% to 100\%) still adds $+0.008$ micro-F1, so we think more data would still help, especially for Complement which is the rarest class.
 
 \subsection{Test results}
 \begin{table}[H]\centering\small
@@ -195,11 +195,11 @@ Majority class (always E) & 0.439 & 0.152 & 0.610 & 0.000 & 0.000 & 0.000 \\
 \caption{Held-out test split (181{,}701 pairs, 8{,}956 queries), evaluated once. $\star$ marks the model chosen on validation.}\label{tab:test}
 \end{table}
 
-Table~\ref{tab:test} gives the test results. The model chosen on validation, DeBERTa-v3-base, scores 0.608 micro-F1, $+0.081$ over LightGBM.
-Its validation micro-F1 was 0.612, so test and validation agree closely and the validation split was a reliable guide.
-The hybrid stacker, which was not selected, scores 0.609 on test; the gap to the selected model is within the seed variation we measured, so we do not read it as a difference.
-Figure~\ref{fig:pc} compares per-class test F1: the cross-encoders gain most on Complement and Irrelevant, the classes where word overlap misleads LightGBM.
-As a check that the saved checkpoints are the ones evaluated, re-predicting validation with each reloaded model matched the saved validation predictions on this share of pairs: MiniLM-L6 1.0000, DeBERTa-v3-small 1.0000, DeBERTa-v3-base 1.0000.
+Table~\ref{tab:test} has the test results. The model we picked on validation, DeBERTa-v3-base, scores 0.608 micro-F1, $+0.081$ over LightGBM.
+Its validation micro-F1 was 0.612, so test and validation are very close and the validation split was a good guide.
+The hybrid stacker, which we did not pick, gets 0.609 on test; the gap to our model is smaller than the seed variation we measured, so we don't see it as a real difference.
+Figure~\ref{fig:pc} compares F1 per class on test: the cross-encoders improve the most on Complement and Irrelevant, which are the classes where word overlap fools LightGBM.
+To make sure the saved checkpoints are the ones we evaluated, we reloaded each model and predicted validation again; the share of pairs matching the saved predictions was: MiniLM-L6 1.0000, DeBERTa-v3-small 1.0000, DeBERTa-v3-base 1.0000.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.85\linewidth]{../figures/final_test_per_class_f1.png}
@@ -213,13 +213,13 @@ As a check that the saved checkpoints are the ones evaluated, re-predicting vali
 \end{figure}
 
 \textbf{Confusions.} In the final model's test confusion matrix (Figure~\ref{fig:conf}), 31.4\% of Substitute pairs are predicted Exact, and only 38.4\% of Complement pairs are predicted Complement (26.9\% are predicted Exact).
-Exact versus Substitute often turns on a detail such as a size, model number or brand that the query names.
+Exact vs Substitute usually comes down to one detail in the query, like a size, a model number or a brand.
 
-\textbf{Complement recall.} On validation, Complement recall is: LightGBM 6.4\%, MiniLM-L6 31.5\%, DeBERTa-v3-small 46.4\%, DeBERTa-v3-base 39.7\%.
-Complement products can share many words with the query (a charger whose title names the phone the query asks for), which pushes overlap-based models towards Exact; the high-overlap slice below shows this.
+\textbf{Complement recall.} On validation the Complement recall is: LightGBM 6.4\%, MiniLM-L6 31.5\%, DeBERTa-v3-small 46.4\%, DeBERTa-v3-base 39.7\%.
+Complement products can share a lot of words with the query (like a charger whose title has the name of the phone in the query), and this pushes models that rely on overlap towards Exact. The high-overlap slice below shows this.
 
-\textbf{Slices.} We fixed five slices before looking at results (Table~\ref{tab:slices}, which also shows all pairs for reference): pairs with high title overlap (at least 75\% of query tokens in the title) labelled Irrelevant or Complement; pairs with low overlap (at most 25\%) labelled Exact; queries with a likely misspelling (a 4+ letter word never seen in training titles or bullets); and queries with a number or a negation.
-On validation (the table shows test), LightGBM got only 9.0\% of the high-overlap I/C pairs right, because it relies on overlap, against 27.6\% for MiniLM-L6, 40.9\% for DeBERTa-v3-small, 39.5\% for DeBERTa-v3-base.
+\textbf{Slices.} We chose five slices before looking at any results (Table~\ref{tab:slices}, which also has all pairs for reference): pairs with high title overlap (at least 75\% of query tokens in the title) labelled Irrelevant or Complement; pairs with low overlap (at most 25\%) labelled Exact; queries with a likely misspelling (a 4+ letter word never seen in training titles or bullets); and queries with a number or a negation.
+On validation (the table is test), LightGBM only got 9.0\% of the high-overlap I/C pairs right since it depends on overlap, compared to 27.6\% for MiniLM-L6, 40.9\% for DeBERTa-v3-small, 39.5\% for DeBERTa-v3-base.
 
 \begin{table}[H]\centering\small
 \begin{tabular}{lrrr}\toprule
@@ -235,10 +235,10 @@ Query has a negation & 22{,}970 & 0.509 & 0.616 \\
 \end{table}
 
 \section{Conclusion}
-Fine-tuned cross-encoders clearly beat lexical models on ESCI, mainly by recovering Complement and Irrelevant pairs that word overlap gets wrong, and larger encoders help further at a higher cost.
-Stacking the cross-encoder outputs with lexical features did not beat the best single cross-encoder on validation, so our final model is DeBERTa-v3-base (test micro-F1 0.608).
-The ablations show that class weighting in the loss hurts, that adding fields beyond the title helps a little, and that many differences of a few thousandths are within seed noise.
-The main open problem is Complement and the Exact/Substitute boundary. Promising next steps are training on the full (not reduced) dataset, larger encoders or longer training, adding the product description through a longer input, and query-level features such as the other products retrieved for the same query.
+Fine-tuned cross-encoders are clearly better than lexical models on ESCI, mostly because they get Complement and Irrelevant pairs right where word overlap gets them wrong, and bigger encoders do even better but cost more.
+Stacking the cross-encoder outputs with the lexical features did not beat the best single cross-encoder on validation, so our final model is DeBERTa-v3-base (test micro-F1 0.608).
+From the ablations, class weights in the loss hurt, using more fields than just the title helps a little, and a lot of differences of a few thousandths are just seed noise.
+The main problem that is still open is Complement and the line between Exact and Substitute. If we had more time we would train on the full dataset instead of the reduced one, try bigger encoders or longer training, give the description more room with a longer input, and add query-level features like the other products that came up for the same query.
 
 \begin{thebibliography}{99}\small
 \bibitem{reddy2022} C.~K.~Reddy et~al. Shopping Queries Dataset: A Large-Scale ESCI Benchmark for Improving Product Search. arXiv:2206.06588, 2022.
