@@ -14,8 +14,32 @@ lrc = J('lr_converged') if has('lr_converged') else None
 tpl = J('test_predict_log') if has('test_predict_log') else {}
 runs = {os.path.basename(p)[:-5]: json.load(open(p)) for p in glob.glob(f'{R}/*.json')}
 runs = {k: v for k, v in runs.items() if isinstance(v, dict) and 'config' in v and 'best' in v and 'model' in v['config']}
+sig = J('significance') if has('significance') else None
+
+def exact_from_confusion(o):
+    """The JSON metrics are rounded to 4 decimals. Wherever a confusion matrix is stored, recompute micro-F1,
+    macro-F1 and per-class F1 from it so the report rounds only once."""
+    if isinstance(o, dict):
+        cm = o.get('confusion')
+        if isinstance(cm, list) and len(cm) == 4 and all(isinstance(r, list) and len(r) == 4 for r in cm):
+            f = []
+            for k in range(4):
+                d = sum(cm[k]) + sum(cm[i][k] for i in range(4))
+                f.append(2 * cm[k][k] / d if d else 0.0)
+            o['micro_f1'] = sum(cm[k][k] for k in range(4)) / sum(map(sum, cm))
+            o['macro_f1'] = sum(f) / 4
+            o['per_class_f1'] = dict(zip(LAB, f))
+        for v in o.values():
+            exact_from_confusion(v)
+    elif isinstance(o, list):
+        for v in o:
+            exact_from_confusion(v)
+for _o in (base, test, hyb, lrc, runs):
+    exact_from_confusion(_o)
 
 f3 = lambda x: f'{x:.3f}'
+sg = lambda x, d=3: f'${x:+.{d}f}$'
+ci = lambda c, d=3: f'[{c[0]:+.{d}f}, {c[1]:+.{d}f}]'.replace('-', '$-$')
 pct = lambda x: f'{100 * x:.1f}\\%'
 num = lambda x: f'{x:,}'.replace(',', '{,}')
 PRETTY = {'minilm': 'MiniLM-L6', 'deberta_small': 'DeBERTa-v3-small', 'deberta_base': 'DeBERTa-v3-base',
@@ -50,7 +74,7 @@ ce_alone_best = hyb['cross_encoder_alone'][best_ce]
 
 def seed_pair(a, b):
     if a in runs and b in runs:
-        return runs[a]['best']['micro_f1'], runs[b]['best']['micro_f1'], runs[a]['best']['macro_f1'], runs[b]['best']['macro_f1']
+        return last(a)['micro_f1'], last(b)['micro_f1'], last(a)['macro_f1'], last(b)['macro_f1']
     return None
 seeds = {'MiniLM-L6': seed_pair('minilm', 'minilm_seed1')}
 def at_step(tag, step):
@@ -88,7 +112,7 @@ def t_ablation():
     rows = []
     for tag, name in spec:
         if tag in runs:
-            r = runs[tag]['best']
+            r = last(tag)
             rows.append(f"{name} & {f3(r['micro_f1'])} & {f3(r['macro_f1'])} & {f3(r['per_class_f1']['C'])} & {f3(r['per_class_f1']['I'])} & {train_min(tag):.1f}" + r' \\')
     return '\n'.join(rows)
 
@@ -110,9 +134,14 @@ def t_resources():
         c, l = runs[t]['config'], last(t)
         name = PRETTY.get(t, t.replace('minilm_len', 'MiniLM-L6, length '))
         tp = tpl.get(t, {}).get('test_pairs_per_sec')
-        thr = num(tp) if tp else f"{num(round(ps['val']['pairs'] / l['val_infer_secs']))}$^\\dagger$"
+        test_thr = num(tp) if tp else '--'
+        vsrc, mark = t, ''
+        if not l.get('val_infer_secs') and t == 'minilm' and 'minilm_seed1' in runs:
+            vsrc, mark = 'minilm_seed1', '$^\\dagger$'   # same model and length, timed in the second round
+        vs = last(vsrc).get('val_infer_secs')
+        val_thr = f"{num(round(ps['val']['pairs'] / vs))}{mark}" if vs else '--'
         mem = f"{l['peak_gpu_mem_gb']:.1f}" if l.get('peak_gpu_mem_gb') else '--'
-        rows.append(f"{name} & {c['params'] / 1e6:.0f}M & {c['MAXLEN']} & {c['BS']} & {train_min(t):.0f} & {mem} & {thr}" + r' \\')
+        rows.append(f"{name} & {c['params'] / 1e6:.0f}M & {c['MAXLEN']} & {c['BS']} & {train_min(t):.0f} & {mem} & {val_thr} & {test_thr}" + r' \\')
     return '\n'.join(rows)
 
 def t_curve():
@@ -141,7 +170,7 @@ def complement_text():
     for m in ('best_baseline', 'minilm', 'deberta_small', 'deberta_base'):
         if m in c:
             nm = 'LightGBM' if m == 'best_baseline' else PRETTY[m]
-            parts.append(f"{nm} {pct(c[m]['recall'])}")
+            parts.append(f"{nm} {pct(c[m]['pred_counts']['C'] / c[m]['n'])}")
     return ', '.join(parts)
 
 conf = tm[final]['confusion']
@@ -163,12 +192,40 @@ for name, s in seeds.items():
 seed_text = '; '.join(seed_lines) + '.' if seed_lines else ''
 if ds1:
     a, b = at_step('deberta_small', ds1_last), ds1['log'][-1]
-    seed_text += (f" The DeBERTa-v3-small seed-1 run ended early, after its validation pass at step {num(ds1_last)} of {num(ds_total)}, without an error message"
-                  f" (we found this only after the VM was deleted). At that shared checkpoint the two seeds give micro-F1 {f3(a['micro_f1'])} (seed 0) and {f3(b['micro_f1'])} (seed 1),"
+    seed_text += (f" For DeBERTa-v3-small only a partial seed-1 run survives: its log stops at training step 2{{,}}600 of {num(ds_total)} with no error, although the job status file records a normal exit."
+                  f" Its step times show that it shared the GPU with the other jobs of that queue for most of its life, and the VM was deleted before we noticed, so we cannot tell what happened to the full run."
+                  f" At the last validation pass it did complete (step {num(ds1_last)}), the two seeds give micro-F1 {f3(a['micro_f1'])} (seed 0) and {f3(b['micro_f1'])} (seed 1),"
                   f" macro-F1 {f3(a['macro_f1'])} and {f3(b['macro_f1'])}.")
 seed_gap = abs(seeds['MiniLM-L6'][0] - seeds['MiniLM-L6'][1]) if seeds['MiniLM-L6'] else None
 
 agree = ', '.join(f"{PRETTY[t]} {v['val_argmax_agreement_with_saved']:.4f}" for t, v in tpl.items() if t in PRETTY)
+
+def cmpd(k, m='micro_f1'):
+    return sig['comparisons'][k][m] if sig else None
+def sig_sentence():
+    if not sig:
+        return ''
+    t1, t2 = cmpd('test_deberta_base_vs_deberta_small'), cmpd('test_deberta_small_vs_minilm')
+    t1m = cmpd('test_deberta_base_vs_deberta_small', 'macro_f1')
+    hb, sd = cmpd('val_deberta_base_vs_hybrid_lex+ce_all'), cmpd('val_minilm_seed1_vs_minilm')
+    tb = sig['single']['test_deberta_base']
+    return (r"\textbf{Uncertainty.} To check which differences are larger than sampling noise we ran a paired bootstrap over queries "
+            f"({num(sig['resamples'])} resamples of whole queries, seed {sig['seed']}; \\texttt{{significance.py}}) and report 95\\% intervals of the difference. "
+            f"On test, DeBERTa-v3-base beats DeBERTa-v3-small by {sg(t1['diff'])} micro-F1 {ci(t1['ci95'])} but not clearly on macro-F1 ({sg(t1m['diff'])}, {ci(t1m['ci95'])}), "
+            f"and DeBERTa-v3-small beats MiniLM-L6 by {sg(t2['diff'])} {ci(t2['ci95'])}. "
+            f"On validation, DeBERTa-v3-base minus the stacker is {sg(hb['diff'])} {ci(hb['ci95'])}, and MiniLM-L6 seed 1 minus seed 0 (best checkpoints) is {sg(sd['diff'])} {ci(sd['ci95'])}; neither is distinguishable from zero. "
+            f"The final model's test micro-F1 interval is [{f3(tb['micro_f1']['ci95'][0])}, {f3(tb['micro_f1']['ci95'][1])}], so differences of a few thousandths on test are at the edge of what the test set can resolve.")
+
+capped = [g for g in base['lgb_grid'] if g['best_iter'] >= 2000]
+lgb_cap_note = (f"{len(capped)} of the {len(base['lgb_grid'])} settings, all with balanced class weights, reached the 2,000-tree cap without early stopping; they score well below the unweighted ones (best {f3(max(g['micro_f1'] for g in capped))})." if capped else '')
+ckpt_note = ', '.join(f"{PRETTY[t]} at step {num(runs[t]['best']['step'])} of {num(last(t)['step'])}" for t in ce_tags) + '.'
+_hv = sorted(hyb['variants'].items(), key=lambda kv: -kv[1]['micro_f1'])
+hyb_tie = (f"{HNAME[_hv[1][0]]} ({f3(_hv[1][1]['micro_f1'])} against {f3(_hv[0][1]['micro_f1'])}"
+           + (f"; bootstrap difference {ci(sig['comparisons']['val_hybrid_lex+ce_all_vs_ce_all_only']['micro_f1']['ci95'])})" if sig and hsel == 'lex+ce_all' and _hv[1][0] == 'ce_all_only' else ')'))
+_cv = [(tag, last(tag)) for tag in ('minilm_frac10', 'minilm_frac25', 'minilm_frac50', 'minilm') if tag in runs]
+curve_text = (f"Going from 10\\% to 100\\% of the training queries raises micro-F1 by {sg(_cv[-1][1]['micro_f1'] - _cv[0][1]['micro_f1'])} and Complement F1 from {f3(_cv[0][1]['per_class_f1']['C'])} to {f3(_cv[-1][1]['per_class_f1']['C'])}; "
+              f"the last doubling (50\\% to 100\\%) still adds {sg(_cv[-1][1]['micro_f1'] - _cv[-2][1]['micro_f1'])} micro-F1, so more data would likely help further, most of all for Complement, the rarest class."
+              if len(_cv) == 4 else '')
 
 def r_(tag, key='micro_f1'): return f3(runs[tag]['best'][key]) if tag in runs else 'n/a'
 
@@ -179,6 +236,7 @@ tex = r"""\documentclass[11pt]{article}
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{caption}
+\usepackage{float}
 \usepackage{amsmath}
 \usepackage[hidelinks]{hyperref}
 \captionsetup{font=small}
@@ -206,7 +264,7 @@ Word overlap alone does not separate these cases.
 
 Our questions were: (1) how far a well-tuned lexical model gets, (2) how much pretrained cross-encoders add, and which design choices matter for them, and (3) whether combining both helps.
 Our progress report covered the baselines and two cross-encoders. This report adds a larger cross-encoder, a set of controlled ablations, the hybrid stacker, a resource analysis and the one-time test evaluation.
-All code, the notebook, run logs and the trained models are in our repository: \url{""" + REPO + r"""}.
+All code, the notebook and run logs are in our repository, \url{""" + REPO + r"""}, and the trained models are attached to its release v1.0, \url{""" + REPO + r"""/releases/tag/v1.0}.
 
 \section{Dataset}
 We use the US locale of the reduced version (\texttt{small\_version == 1}) of the ESCI data \cite{reddy2022}, joined with the product catalogue (""" + num(ps['n_products']) + r""" products).
@@ -219,7 +277,7 @@ Queries are short (mean """ + f"{ps['query_len_words_mean']:.1f}" + r""" words) 
 \textbf{Splits.} We keep the official test split untouched. From the official training split we hold out 10\% of \emph{queries} (not pairs) as validation, with seed 42, so that no query appears in both training and validation.
 Table~\ref{tab:data} shows the sizes and label shares. The classes are imbalanced: Complement is under 5\% of pairs.
 
-\begin{table}[h]\centering\small
+\begin{table}[H]\centering\small
 \begin{tabular}{lrrrrrr}\toprule
 Split & Queries & Pairs & E & S & C & I \\\midrule
 """ + t_data() + r"""
@@ -228,13 +286,14 @@ Split & Queries & Pairs & E & S & C & I \\\midrule
 \end{table}
 
 \textbf{Metric.} Following the KDD Cup 2022 task 2 \cite{reddy2022} we use micro-F1 (equal to accuracy for single-label classification) as the main metric, and also report macro-F1 and per-class F1, because micro-F1 hides poor performance on Complement.
+The reduced set keeps the harder queries of the full dataset \cite{reddy2022}, and we train on it alone, so our scores are not directly comparable to KDD Cup 2022 leaderboard numbers, which were trained on larger data and evaluated on a hidden test set.
 
 \section{Models}
 \textbf{Majority class.} Always predicts Exact.
 
-\textbf{Lexical features + LightGBM.} We compute 33 features per pair: token and character overlap between the query and the title, bullets, brand and colour; BM25-style scores \cite{robertson2009}; query and title lengths; whether the query contains numbers, units or negations; and whether query numbers appear in the title.
+\textbf{Lexical features + LightGBM.} We compute 33 features per pair (\texttt{feats.py}): token overlap between the query and the title, bullets, description, brand and colour (plain and IDF-weighted, fitted on training titles); Jaccard and character 3-gram overlap with the title; BM25-style scores \cite{robertson2009} against title, bullets and description; query, title, bullet and description lengths and whether each field is present; the count of numbers in the query and the share of them found in the title or bullets; whether the brand appears in the query; the number and highest IDF of query words found in no product field; whether the query has a negation; counts of complement cue words (such as ``case'', ``charger'', ``for'') in query and title; whether a query word appears after ``for'' in the title; whether the first and last query words are in the title; and the mean IDF of the query.
 We train LightGBM \cite{ke2017} with learning rate 0.05 and early stopping (50 rounds) on validation, and tune \texttt{num\_leaves} $\in\{31,127\}$, \texttt{min\_child\_samples} $\in\{50,200\}$ and class weights (none or balanced): 8 settings.
-The best used """ + str(lgb_v['params']['num_leaves']) + r""" leaves, minimum """ + str(lgb_v['params']['min_child_samples']) + r""" samples per leaf, no class weights, and stopped at """ + str(lgb_v['best_iter']) + r""" trees.
+The best used """ + str(lgb_v['params']['num_leaves']) + r""" leaves, minimum """ + str(lgb_v['params']['min_child_samples']) + r""" samples per leaf, no class weights, and stopped at """ + str(lgb_v['best_iter']) + r""" trees. """ + lgb_cap_note + r"""
 
 \textbf{Logistic regression.} Multinomial logistic regression \cite{pedregosa2011} on word and character TF-IDF of the query and title (""" + num(1045120) + r""" sparse columns, fit on training text only) plus the standardised lexical features, with $C\in\{0.1,0.3,1,3\}$ and optional balanced class weights.
 In the progress report these fits stopped at 300 lbfgs iterations without converging. """ + lr_conv_note + r"""
@@ -243,7 +302,7 @@ In the progress report these fits stopped at 300 lbfgs iterations without conver
 We fine-tune three pretrained encoders with a new 4-class head and cross-entropy loss: MiniLM-L6 \cite{wang2020}, already trained as a passage re-ranker on MS MARCO \cite{bajaj2016}; DeBERTa-v3-small and DeBERTa-v3-base \cite{he2023}.
 Input A is the cleaned query; input B is the title, brand and colour, and the first 300 characters of the bullet points, joined with the separator token and truncated to 128 tokens.
 We train for 2 epochs with AdamW \cite{loshchilov2019} (weight decay 0.01, 5\% linear warm-up, then linear decay), learning rate $3\times10^{-5}$ and batch 64 for MiniLM and $2\times10^{-5}$ and batch 48 for DeBERTa, with mixed precision \cite{wolf2020}.
-We evaluate on validation every 2,000 steps and keep the checkpoint with the best micro-F1.
+Gradients are clipped at norm 1.0. We evaluate on validation every 2,000 steps and keep the checkpoint with the best micro-F1; """ + ckpt_note + r"""
 
 \textbf{Hybrid stacker.} Cross-encoders read text but cannot see our hand-built signals directly (for example, whether a number in the query is in the title), and LightGBM cannot read text. We therefore stack them \cite{wolpert1992}: a second LightGBM takes the cross-encoders' class probabilities and the 33 lexical features.
 Because the cross-encoders were trained on the training split, their probabilities on training pairs are over-confident. We train the stacker on the \emph{validation} split instead and score it with 5-fold cross-validation grouped by query, so every validation prediction comes from a model that did not see that query.
@@ -252,10 +311,11 @@ We compared four inputs (Table~\ref{tab:hybrid}) with fixed settings (300 trees,
 \textbf{Model selection.} The final model is the one with the highest validation micro-F1 (out-of-fold for the stacker). For the test run, the selected stacker is refit on all validation pairs.
 
 \section{Results}
-All training ran on Google Cloud VMs with one NVIDIA L4 GPU (24\,GB) and 32 vCPUs each.
+All training ran on Google Cloud VMs with one NVIDIA L4 GPU (24\,GB) each; the second-round VMs were \texttt{g2-standard-32} (32 vCPUs, \texttt{infra/config.sh}).
+Times below are wall-clock and include CPU-side work such as tokenization.
 
 \subsection{Validation results and model selection}
-\begin{table}[h]\centering\small
+\begin{table}[H]\centering\small
 \begin{tabular}{lrrrrrr}\toprule
 Model & micro-F1 & macro-F1 & F1 E & F1 S & F1 C & F1 I \\\midrule
 """ + t_val_main() + r"""
@@ -267,7 +327,7 @@ Table~\ref{tab:val} shows the main comparison. LightGBM improves on the majority
 Every cross-encoder beats it, with the largest gains on Complement and Irrelevant. Larger encoders do better: """ + ', '.join(f"{PRETTY[t]} {r_(t)}" for t in ce_tags) + r""" micro-F1.
 
 \subsection{Hybrid stacker}
-\begin{table}[h]\centering\small
+\begin{table}[H]\centering\small
 \begin{tabular}{lrrrrrr}\toprule
 Input & micro-F1 & macro-F1 & F1 E & F1 S & F1 C & F1 I \\\midrule
 """ + t_hybrid() + r"""
@@ -275,41 +335,45 @@ Input & micro-F1 & macro-F1 & F1 E & F1 S & F1 C & F1 I \\\midrule
 \caption{Hybrid stacker variants, validation, 5-fold out-of-fold grouped by query. ``Alone'' rows are the cross-encoders' own argmax on the same pairs.}\label{tab:hybrid}
 \end{table}
 
-The best input is """ + HNAME[hsel] + r""" (Table~\ref{tab:hybrid}). Compared with the best single cross-encoder, """ + PRETTY[best_ce] + r""", on the same pairs it changes micro-F1 by """ + f"{hv['micro_f1'] - ce_alone_best['micro_f1']:+.3f}" + r""" and macro-F1 by """ + f"{hv['macro_f1'] - ce_alone_best['macro_f1']:+.3f}" + r""".
+The best input by out-of-fold micro-F1 is """ + HNAME[hsel] + r""" (Table~\ref{tab:hybrid}), essentially tied with """ + hyb_tie + r""". Compared with the best single cross-encoder, """ + PRETTY[best_ce] + r""", on the same pairs it changes micro-F1 by """ + sg(hv['micro_f1'] - ce_alone_best['micro_f1']) + r""" and macro-F1 by """ + sg(hv['macro_f1'] - ce_alone_best['macro_f1']) + r""".
 """ + (r"""So stacking did not help: the stacker is trained on validation pairs only (about four fifths of """ + num(ps['val']['pairs']) + r""" per fold), and the lexical features add little that the cross-encoders do not already capture. Adding the lexical features to the best cross-encoder alone (""" + f3(hyb['variants']['lex+ce_best']['micro_f1']) + r""") also scores below that cross-encoder by itself.""" if hv['micro_f1'] <= ce_alone_best['micro_f1'] else '') + r"""
 Balanced class weights in the stacker lower micro-F1 to """ + f3(hyb['variants']['lex+ce_all_balanced']['micro_f1']) + r""" and leave Complement F1 unchanged (""" + f3(hyb['variants']['lex+ce_all_balanced']['per_class_f1']['C']) + r""" against """ + f3(hyb['variants']['lex+ce_all']['per_class_f1']['C']) + r""").
 
 \subsection{Ablations (MiniLM-L6, validation)}
 To find which design choices matter we changed one setting at a time on MiniLM-L6, the cheapest cross-encoder (Table~\ref{tab:abl}).
 
-\begin{table}[h]\centering\small
+\begin{table}[H]\centering\small
 \begin{tabular}{lrrrrr}\toprule
 Setting & micro-F1 & macro-F1 & F1 C & F1 I & Train min \\\midrule
 """ + t_ablation() + r"""
 \bottomrule\end{tabular}
-\caption{One-change-at-a-time ablations on MiniLM-L6 (best validation checkpoint). The reference run is from the first round, on a different L4 VM, so its training time is not directly comparable.}\label{tab:abl}
+\caption{One-change-at-a-time ablations on MiniLM-L6, validation, all at the last checkpoint (end of epoch 2), so rows compare settings rather than which checkpoint happened to be best. The reference run is from the first round, on a different L4 VM that shared its CPUs with the LightGBM grid, so its training time is not directly comparable.}\label{tab:abl}
 \end{table}
 
-\textbf{Seed variance.} """ + seed_text + r""" Differences between configurations smaller than this should not be read as real.
+Class weighting lowers micro-F1 sharply. Among the field and length changes, only the title-only input (dropping bullets, brand and colour) clearly costs accuracy (""" + sg(-cmpd('val_minilm_vs_minilm_f_title')['diff']) + r""" micro-F1 at the best checkpoint, bootstrap interval """ + ci([-x for x in cmpd('val_minilm_vs_minilm_f_title')['ci95']][::-1]) + r"""); the others are within a few thousandths of the reference. Adding the product description is a weak test: it is appended last and is often cut off at 128 tokens.
+
+\textbf{Seed variance.} """ + seed_text + r""" Micro-F1 differences between configurations smaller than the MiniLM-L6 seed gap should not be read as real.
+
+""" + sig_sentence() + r"""
 
 \subsection{Complexity and resource analysis}
-\begin{table}[h]\centering\small
-\begin{tabular}{lrrrrrr}\toprule
-Model & Params & Max len & Batch & Train min & Peak GPU GB & Pairs/s (inference) \\\midrule
+\begin{table}[H]\centering\small
+\begin{tabular}{lrrrrrrr}\toprule
+Model & Params & Max len & Batch & Train min & Peak GPU GB & Val pairs/s & Test pairs/s \\\midrule
 """ + t_resources() + r"""
 \bottomrule\end{tabular}
-\caption{Cost of the cross-encoders on one L4 GPU. Train minutes cover 2 epochs including the periodic validation passes. Inference throughput is measured on the test split; $^\dagger$ from the validation passes. Peak memory was not logged in the first-round runs (--).}\label{tab:res}
+\caption{Cost of the cross-encoders on one L4 GPU. Train minutes are wall-clock for 2 epochs including the periodic validation passes; first-round runs (MiniLM-L6, DeBERTa-v3-small) shared the VM's CPUs with other jobs. \emph{Val pairs/s}: GPU forward passes over the pre-tokenized validation split, batch 256, the same measurement for every row ($^\dagger$ timed on the identical seed-1 run; not logged for the first-round DeBERTa-v3-small). \emph{Test pairs/s}: the one-time test prediction, batch 512, including tokenization on the CPU, so it is lower and not comparable to the validation column. Peak memory was not logged in the first round (--).}\label{tab:res}
 \end{table}
 
 Table~\ref{tab:res} shows the cost side. The cost of a cross-encoder grows with both model size and sequence length, while the classical models are far cheaper: the LightGBM refit took """ + str(test['val']['lightgbm_refit']['fit_secs']) + r""" seconds on CPU (""" + str(n_lgb_trees) + r""" trees) and predicted the """ + num(test['test_pairs']) + r""" test pairs in """ + str(test['val']['lightgbm_refit']['test_infer_secs']) + r""" seconds, and the stacker adds only a small LightGBM on top of the cross-encoder outputs.
-Each logistic-regression fit on """ + num(1045120) + r""" sparse columns took """ + (f"{min(r['secs'] for r in lrc['lr_grid']) / 60:.0f}--{max(r['secs'] for r in lrc['lr_grid']) / 60:.0f}" if lrc else '') + r""" minutes of CPU time per setting (8 settings run in parallel), about as long as fine-tuning MiniLM-L6 on the GPU, for much lower scores.
+Each logistic-regression fit on """ + num(1045120) + r""" sparse columns took """ + (f"{min(r['secs'] for r in lrc['lr_grid']) / 60:.0f}--{max(r['secs'] for r in lrc['lr_grid']) / 60:.0f}" if lrc else '') + r""" minutes of wall-clock time per setting (all 8 settings ran in parallel on one 32-vCPU VM while DeBERTa-v3-base trained on its GPU), about as long as fine-tuning MiniLM-L6, for much lower scores.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.62\linewidth]{../figures/final_learning_curve.png}
 \caption{Learning curve for MiniLM-L6: validation F1 at the last checkpoint against the number of training pairs (training queries subsampled, seed 0).}\label{fig:curve}
 \end{figure}
 
-\begin{table}[h]\centering\small
+\begin{table}[H]\centering\small
 \begin{tabular}{rrrrr}\toprule
 Share of train queries & Pairs & micro-F1 & macro-F1 & F1 C \\\midrule
 """ + t_curve() + r"""
@@ -317,10 +381,10 @@ Share of train queries & Pairs & micro-F1 & macro-F1 & F1 C \\\midrule
 \caption{Learning curve data (MiniLM-L6, last checkpoint, validation).}\label{tab:curve}
 \end{table}
 
-Figure~\ref{fig:curve} and Table~\ref{tab:curve} show how results change with training data size.
+Figure~\ref{fig:curve} and Table~\ref{tab:curve} show how results change with training data size. """ + curve_text + r"""
 
 \subsection{Test results}
-\begin{table}[h]\centering\small
+\begin{table}[H]\centering\small
 \begin{tabular}{lrrrrrr}\toprule
 Model & micro-F1 & macro-F1 & F1 E & F1 S & F1 C & F1 I \\\midrule
 """ + t_test() + r"""
@@ -328,18 +392,19 @@ Model & micro-F1 & macro-F1 & F1 E & F1 S & F1 C & F1 I \\\midrule
 \caption{Held-out test split (""" + num(test['test_pairs']) + r""" pairs, """ + num(test['test_queries']) + r""" queries), evaluated once. $\star$ marks the model chosen on validation.}\label{tab:test}
 \end{table}
 
-Table~\ref{tab:test} gives the test results. The model chosen on validation, """ + pretty(final) + r""", scores """ + f3(tm[final]['micro_f1']) + r""" micro-F1, """ + f"{gain_final_vs_lgb:+.3f}" + r""" over LightGBM.
-Its validation micro-F1 was """ + f3(test['val_micro_used_for_selection'][final]) + r""", so test and validation agree closely and the validation split was a reliable guide.
+Table~\ref{tab:test} gives the test results. The model chosen on validation, """ + pretty(final) + r""", scores """ + f3(tm[final]['micro_f1']) + r""" micro-F1, """ + sg(gain_final_vs_lgb) + r""" over LightGBM.
+Its validation micro-F1 was """ + f3(runs[final]['best']['micro_f1'] if final in runs else test['val_micro_used_for_selection'][final]) + r""", so test and validation agree closely and the validation split was a reliable guide.
 The hybrid stacker, which was not selected, scores """ + f3(tm[f'hybrid_{hsel}']['micro_f1']) + r""" on test; the gap to the selected model is within the seed variation we measured, so we do not read it as a difference.
+Figure~\ref{fig:pc} compares per-class test F1: the cross-encoders gain most on Complement and Irrelevant, the classes where word overlap misleads LightGBM.
 """ + (f"As a check that the saved checkpoints are the ones evaluated, re-predicting validation with each reloaded model matched the saved validation predictions on this share of pairs: {agree}." if agree else '') + r"""
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.85\linewidth]{../figures/final_test_per_class_f1.png}
 \caption{Per-class test F1 of LightGBM, the best single cross-encoder and the hybrid stacker.}\label{fig:pc}
 \end{figure}
 
 \subsection{Failure analysis}
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.48\linewidth]{../figures/final_test_confusion.png}
 \caption{Test confusion matrix of the final model (row-normalised shares and counts).}\label{fig:conf}
 \end{figure}
@@ -350,10 +415,10 @@ Exact versus Substitute often turns on a detail such as a size, model number or 
 \textbf{Complement recall.} On validation, Complement recall is: """ + complement_text() + r""".
 Complement products can share many words with the query (a charger whose title names the phone the query asks for), which pushes overlap-based models towards Exact; the high-overlap slice below shows this.
 
-\textbf{Slices.} We fixed six slices before looking at results (Table~\ref{tab:slices}): pairs with high title overlap (at least 75\% of query tokens in the title) labelled Irrelevant or Complement; pairs with low overlap (at most 25\%) labelled Exact; queries with a likely misspelling (a 4+ letter word never seen in training titles or bullets); and queries with a number or a negation.
-On validation, LightGBM got only """ + pct(slh['best_baseline']['accuracy']) + r""" of the high-overlap I/C pairs right, because it relies on overlap, against """ + ', '.join(f"{pct(slh[m]['accuracy'])} for {PRETTY[m]}" for m in ('minilm', 'deberta_small', 'deberta_base') if m in slh) + r""".
+\textbf{Slices.} We fixed five slices before looking at results (Table~\ref{tab:slices}, which also shows all pairs for reference): pairs with high title overlap (at least 75\% of query tokens in the title) labelled Irrelevant or Complement; pairs with low overlap (at most 25\%) labelled Exact; queries with a likely misspelling (a 4+ letter word never seen in training titles or bullets); and queries with a number or a negation.
+On validation (the table shows test), LightGBM got only """ + pct(slh['best_baseline']['accuracy']) + r""" of the high-overlap I/C pairs right, because it relies on overlap, against """ + ', '.join(f"{pct(slh[m]['accuracy'])} for {PRETTY[m]}" for m in ('minilm', 'deberta_small', 'deberta_base') if m in slh) + r""".
 
-\begin{table}[h]\centering\small
+\begin{table}[H]\centering\small
 \begin{tabular}{lr""" + 'r' * ncols + r"""}\toprule
 """ + sh + r""" \\\midrule
 """ + srows + r"""

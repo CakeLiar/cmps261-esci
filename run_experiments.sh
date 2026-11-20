@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Second round of experiments (final report). Runs ON a VM from the project root.
-#   QUEUES  which job queues to run on this VM; queue i uses GPU i (default: "a b" on one VM with 2 GPUs).
+#   QUEUES  which job queues to run on this VM; queue i uses GPU i (default: "a b" on one VM with 2 GPUs;
+#           the script stops if there are fewer GPUs than queues). QUEUES="" runs only the FINAL step.
 #           We ran QUEUES=a on VM esci-cmps261 and QUEUES=b on VM esci-cmps261-b (one L4 each).
 #   LR=1    also run the logistic-regression rerun on this VM's CPUs.
 #   FINAL=1 after the queues: test predictions, failure analysis, hybrid and the one-time test evaluation
@@ -36,6 +37,12 @@ queue_b() {  # second seeds, class weighting, field ablations, max length 64, le
   run $1 minilm_frac50 $MINI FRAC=0.5
 }
 
+nq=$(echo $QUEUES | wc -w)
+ngpu=$(nvidia-smi -L 2>/dev/null | wc -l)
+if [ "$nq" -gt "$ngpu" ]; then
+  echo "QUEUES='$QUEUES' needs $nq GPUs but this machine has $ngpu. Run one queue per 1-GPU VM (QUEUES=a, QUEUES=b)." >&2
+  exit 1
+fi
 gpu=0
 for q in $QUEUES; do ( queue_$q $gpu ) & gpu=$((gpu + 1)); done
 if [ "${LR:-0}" = 1 ]; then

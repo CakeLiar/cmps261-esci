@@ -27,6 +27,7 @@ Data: US locale, reduced set (`small_version == 1`). Metric: micro-F1 (main), ma
 | 6. Hybrid stacker (validation, 5-fold by query) | `hybrid.py` | `results/hybrid.json` |
 | 7. Test predictions, final models only | `predict_test.py` | `results/<tag>_test_proba.npy` |
 | 8. One-time test evaluation | `final_test.py` | `results/test.json`, `models/lgb_best.txt`, `models/hybrid_lgb.txt` |
+| 8b. Bootstrap intervals (CPU, seconds) | `significance.py` | `results/significance.json` |
 | 9. Figures, report, notebook | `make_figures.py`, `make_figures_final.py`, `build_report.py`, `build_final_report.py`, `make_notebook.py` | `figures/`, `report/`, `CMPS261_ESCI.ipynb` |
 
 `xenc.py` is an earlier cross-encoder trained from scratch. It is not used in the reports.
@@ -41,14 +42,27 @@ bash infra/create.sh          # staging bucket + VM (g2-standard-32, 1 x L4, Ubu
 bash infra/push_code.sh       # copy this repository to the VM
 # on the VM, in ~/esci:
 bash infra/setup_vm.sh        # apt packages, venv, pinned torch/transformers, raw data download, prep.py, feats.py
-QUEUES="a b" LR=1 FINAL=1 bash run_experiments.sh   # all second-round experiments and the test evaluation
+bash run_vm.sh                # first round: LightGBM/LR grid, MiniLM-L6 and DeBERTa-v3-small reference runs
+QUEUES=a LR=1 bash run_experiments.sh   # second round, queue a (DeBERTa-v3-base, length 256) + LR rerun
 # back on your machine:
 bash infra/fetch.sh           # results/, models/, report/ through the bucket
 bash infra/teardown.sh        # delete the VM and the bucket
 ```
 
+`run_experiments.sh` runs one queue per GPU and stops if the machine has fewer GPUs than queues.
+On 1-GPU VMs, run queue `b` (seeds, ablations, learning curve) on a second VM the same way (`VM=esci-cmps261-b bash infra/create.sh`, then `QUEUES=b bash run_experiments.sh` there).
+Copy its `results/` into the first VM's `results/` (all file names differ between the queues), then run the final step there:
+
+```bash
+QUEUES="" FINAL=1 bash run_experiments.sh   # test predictions, failure slices, hybrid CV and the one-time test evaluation
+python significance.py && python make_figures_final.py && python build_final_report.py && python make_notebook.py
+```
+
+To skip the first round, download `minilm.tar.gz` and `deberta_small.tar.gz` from release `v1.0` and unpack them into `models/`; the final step needs those checkpoints and `results/baseline.json`, `minilm.json` and `deberta_small.json`, which are in this repository.
+
 For the report we ran queue `a` and logistic regression on VM `esci-cmps261` and queue `b` on VM `esci-cmps261-b` (one L4 each, because 2- and 4-GPU L4 machines were out of stock), then the final step on `esci-cmps261`.
-The first-round runs (progress report) used `run_vm.sh` and `run_rest.sh` on one L4 VM.
+The first-round runs (progress report) used `run_vm.sh` on one L4 VM. Its DeBERTa-v3-small run crashed with `ValueError: Attempting to unscale FP16 gradients.` (status line in `results/run_vm.out`); after the fix in `xenc_pretrained.py` we reran it with `run_rest.sh`. The committed `run_vm.sh` works with the fixed code.
+In `results/logs/queue_status.txt`, lines starting with `B:` were copied from VM `esci-cmps261-b` when we merged the two VMs' results.
 
 ## Reproduce on any machine
 
@@ -70,7 +84,7 @@ The first-round runs (progress report) used `run_vm.sh` and `run_rest.sh` on one
    pip install -r requirements.txt
    ```
 
-   `results/pip_freeze.txt` lists every package version on the training VM.
+   `requirements.txt` pins torch and transformers. For the exact versions of every other package on the training VM, install from `results/pip_freeze.txt` instead (`pip install -r results/pip_freeze.txt`).
 
 3. Run the pipeline in the order of the table above. `run_vm.sh` (first round) and `run_experiments.sh` (second round) show the exact commands and settings of every run.
 
@@ -83,8 +97,9 @@ The first-round runs (progress report) used `run_vm.sh` and `run_rest.sh` on one
 - Learning-curve subsets: training queries sampled with `RandomState(0)`.
 - Hybrid: LightGBM with `random_state=0`, 5-fold `GroupKFold` by query on validation.
 - GPU training with mixed precision is not bitwise deterministic, so reruns can differ slightly in the last digits.
-- The `deberta_small_seed1` run ended early, after its validation pass at step 2,000 of 15,730, without an error message (`results/logs/deberta_small_seed1.log`). The report compares seeds at that shared checkpoint.
-- Results: final model DeBERTa-v3-base (chosen on validation), test micro-F1 0.608, macro-F1 0.555 (`results/test.json`).
+- Only a partial `deberta_small_seed1` run survives. Its log (`results/logs/deberta_small_seed1.log`) stops at training step 2,600 of 15,730 with no error, although `queue_status.txt` records exit 0. Its step times show it shared the GPU with other queue-b jobs, and VM `esci-cmps261-b` was deleted before we noticed, so the cause is unknown. The report compares seeds at step 2,000, the last validation pass it completed. Its training time, and those of `minilm_frac25` and `minilm_frac50`, which ran alongside it, are not clean timings.
+- Uncertainty: `significance.py` runs a paired bootstrap over queries for the comparisons in the report (`results/significance.json`).
+- Results: final model DeBERTa-v3-base (chosen on validation), test micro-F1 0.608, macro-F1 0.556 (`results/test.json`; rounded from the confusion matrix).
 
 ## Models
 
